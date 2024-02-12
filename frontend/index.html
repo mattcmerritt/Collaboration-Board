@@ -7,16 +7,32 @@
 </head>
 <body>
     <h1>Collaboration-Board</h1>
+    
+    <label for="name-input">Name:</label>
+    <input id="name-input" type="text" >
+
     <script>
+        // adding listener to input
+        let name
+        const nameInput = document.getElementById("name-input");
+        nameInput.addEventListener("change", () => {
+            name = nameInput.value.trim()
+
+            ws.send(JSON.stringify({
+                "user": name === '' ? "Unnamed User" : name,
+                "message": "This is a test message."
+            }))
+        })
+
+        // websocket connections
         const ws = new WebSocket("ws://localhost:8080")
         ws.addEventListener("open", () => {
             console.log("Connected to websocket server.")
-
-            ws.send("This is a test message.")
         })
 
         ws.addEventListener("message", (message) => {
-            console.log(`Message received from server: ${message.data}`)
+            message = JSON.parse(message.data)
+            console.log(`Message received from server: ${message.message}`)
         })
     </script>
 </body>

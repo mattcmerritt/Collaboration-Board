@@ -8,9 +8,14 @@ wss.on('connection', function connection(socket) {
     console.log('Client connected!')
 
     socket.on('message', (data) => {
-        console.log(`Message received from client: "${data}"`)
+        data = JSON.parse(data)
+        
+        console.log(`Message received from ${data.user} client: "${data.message}"`)
 
-        socket.send(`Server received: ${data}`)
+        socket.send(JSON.stringify({
+            'user': data.user,
+            'message': `Server received from ${data.user}: ${data.message}`
+        }))
     })
 
     socket.on('close', () => {
