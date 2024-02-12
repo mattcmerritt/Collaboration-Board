@@ -10,12 +10,16 @@ wss.on('connection', function connection(socket) {
     socket.on('message', (data) => {
         data = JSON.parse(data)
         
-        console.log(`Message received from ${data.user} client: "${data.message}"`)
+        console.log(`Message received from ${data.user}'s client: "${data.message}"`)
 
-        socket.send(JSON.stringify({
-            'user': data.user,
-            'message': `Server received from ${data.user}: ${data.message}`
-        }))
+        wss.clients.forEach(function each(client) {
+            if (client.readyState === ws.WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                    'user': data.user,
+                    'message': data.message
+                }))
+            } 
+        })
     })
 
     socket.on('close', () => {
