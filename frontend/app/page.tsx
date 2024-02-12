@@ -15,7 +15,8 @@ export default function Home() {
   })
 
   // name management
-  let name : string
+  let name : string = ''
+  let message : string = ''
 
   function changeName() {
     const nameInput : HTMLInputElement | null = document.getElementById("name-input") as HTMLInputElement
@@ -23,10 +24,20 @@ export default function Home() {
     if (nameInput !== null) {
       name = nameInput.value.trim()
     }
-    
+  }
+
+  function changeMessage() {
+    const messageInput : HTMLInputElement | null = document.getElementById("message-input") as HTMLInputElement
+
+    if (messageInput !== null) {
+      message = messageInput.value.trim()
+    }
+  }
+
+  function sendMessage() {
     ws.send(JSON.stringify({
-        "user": name === '' ? "Unnamed User" : name,
-        "message": "This is a test message."
+      "user": name === '' ? "Unnamed User" : name,
+      "message": message === '' ? "No message content." : message
     }))
   }
 
@@ -34,7 +45,11 @@ export default function Home() {
     <div>
       <h1>Collaboration Board</h1>
       <label htmlFor="name-input">Name: </label>
-      <input id="name-input" type="text" onChange={changeName}></input>
+      <input id="name-input" type="text" onChange={changeName} />
+      <br />
+      <label htmlFor="message-input">Message Content: </label>
+      <input id="message-input" type="text" onChange={changeMessage} />
+      <button onClick={sendMessage}>Send Message</button>
     </div>
   )
 }
