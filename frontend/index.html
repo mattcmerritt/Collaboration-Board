@@ -9,6 +9,15 @@
     <h1>Collaboration-Board</h1>
     <script>
         const ws = new WebSocket("ws://localhost:8080")
+        ws.addEventListener("open", () => {
+            console.log("Connected to websocket server.")
+
+            ws.send("This is a test message.")
+        })
+
+        ws.addEventListener("message", (message) => {
+            console.log(`Message received from server: ${message.data}`)
+        })
     </script>
 </body>
 </html>
