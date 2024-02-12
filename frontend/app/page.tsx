@@ -10,8 +10,14 @@ export default function Home() {
   })
 
   ws.addEventListener("message", (e : MessageEvent) => {
-      const message : {message : string} = JSON.parse(e.data)
+      const message : {message : string, user : string} = JSON.parse(e.data)
       console.log(`Message received from server: ${message.message}`)
+
+      const messageTextbox : HTMLElement | null = document.getElementById("message-box")
+
+      if (messageTextbox !== null) {
+        messageTextbox.innerHTML = `${message.user}: ${message.message}`
+      }
   })
 
   // name management
@@ -50,6 +56,8 @@ export default function Home() {
       <label htmlFor="message-input">Message Content: </label>
       <input id="message-input" type="text" onChange={changeMessage} />
       <button onClick={sendMessage}>Send Message</button>
+      <br />
+      <p id="message-box">No message received yet.</p>
     </div>
   )
 }
