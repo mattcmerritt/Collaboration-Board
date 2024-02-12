@@ -23,6 +23,10 @@ npm run start
 ### Frontend
 
 - Navigate to the `frontend` directory.
+- Run the following:
+```
+npm install
+```
 - Ensure that the backend is already running. 
     - We are not currently sure why, but building requires the ability to connect to the WebSocketServer.
 - Run the following:
