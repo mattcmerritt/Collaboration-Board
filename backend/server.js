@@ -1,8 +1,24 @@
 const ws = require('ws')
+const pg = require('pg')
+const dotenv = require('dotenv').config()
 
 const wss = new ws.WebSocketServer({ port: 8080 })
 
 console.log('Started server on port 8080')
+
+const client = new pg.Client({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+})
+
+client.connect().then(() => {
+    client.query('SELECT NOW()').then((result) => {
+        console.log(result.rows)
+    })
+})
 
 wss.on('connection', function connection(socket) {
     console.log('Client connected!')
