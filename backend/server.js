@@ -14,10 +14,18 @@ const client = new pg.Client({
     port: process.env.DB_PORT,
 })
 
-client.connect().then(() => {
-    client.query('SELECT NOW()').then((result) => {
-        console.log(result.rows)
-    })
+// example database connection
+// console.log('Verifying that the database is working:')
+// client.connect().then(() => {
+//     client.query('SELECT NOW()').then((result) => {
+//         console.log(result.rows)
+//     })
+// })
+
+// verifying that necessary tables already exist
+client.connect()
+client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = 'messages' )").then((result) => {
+    console.log(result.rows)
 })
 
 wss.on('connection', function connection(socket) {
