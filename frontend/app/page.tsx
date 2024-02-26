@@ -18,6 +18,7 @@ export default function Home() {
       console.log("Connected to websocket server.")
   })
 
+  const usersTyping : string[] = []
   ws.addEventListener("message", (e : MessageEvent) => {
       const message : {ws_msg_type : string, message ?: string, user : string, conversation ?: string, typing ?: boolean} = JSON.parse(e.data)
       
@@ -33,9 +34,13 @@ export default function Home() {
       else if (message.ws_msg_type === 'user typing') {
         if (message.typing) {
           console.log(`Received from server that ${message.user} is typing.`)
+          usersTyping.push(message.user)
         }
         else {
           console.log(`Received from server that ${message.user} is no longer typing.`)
+          if(usersTyping.indexOf(message.user) < 0) {
+            usersTyping.splice(usersTyping.indexOf(message.user), 1)
+          }
         }
       }
   })
@@ -147,6 +152,17 @@ export default function Home() {
         value={conversation} 
         onChange={handleConversationChange} 
       />
+      {usersTyping.length !== 0 
+        ? 
+        <div id="typing-indicator">
+          {usersTyping.length == 1 
+            ? "{usersTyping[0]} is typing..." 
+            : usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."
+          }
+        </div>
+        :
+        <></>
+      }
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       <br />
       <p id="message-box">No message received yet.</p>
