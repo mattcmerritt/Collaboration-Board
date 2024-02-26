@@ -23,7 +23,8 @@ export default function Home() {
   // TODO: determine if this type casting will cause problems when using useRef
   const ws = useRef(null as unknown as WebSocket)
 
-  const usersTyping = useRef([] as string[])
+  // set up hook for users typing
+  const [usersTyping, setUsersTyping] = useState([] as string[])
 
   // websocket connections
   useEffect(() => {
@@ -48,12 +49,12 @@ export default function Home() {
         else if (message.ws_msg_type === 'user typing') {
           if (message.typing) {
             console.log(`Received from server that ${message.user} is typing.`)
-            usersTyping.current.push(message.user as string)
+            setUsersTyping(usersTyping.concat(message.user as string))
           }
           else {
             console.log(`Received from server that ${message.user} is no longer typing.`)
-            if(usersTyping.current.indexOf(message.user as string) >= 0) {
-              usersTyping.current.splice(usersTyping.current.indexOf(message.user as string), 1)
+            if(usersTyping.indexOf(message.user as string) >= 0) {
+              setUsersTyping(usersTyping.filter((element) => message.user as string !== element))
             }
           }
         }
@@ -65,7 +66,7 @@ export default function Home() {
     ws.current = socket
 
     return () => socket.close()
-  }, [])
+  }, [usersTyping])
 
   // name hook
   const [name, setName] = useState("")
@@ -114,6 +115,12 @@ export default function Home() {
       "message": message === "" ? "No message content." : message,
       "conversation": conversation === "" ? "default" : conversation
     }))
+
+    // get new conversation logs
+    ws.current.send(JSON.stringify({
+      'ws_msg_type': 'chat history',
+      'conversation': conversation === "" ? "default" : conversation
+    }))
   }
 
   function showTyping() {
@@ -147,6 +154,17 @@ export default function Home() {
     return entryComponents
   }
 
+  function showTypingUsers() {
+    const entryComponents : JSX.Element[] = []
+    if (usersTyping.length == 1) {
+      entryComponents.push(<p id="typing-indicator">{usersTyping[0] + " is typing..."}</p>)
+    }
+    else if (usersTyping.length > 1) {
+      entryComponents.push(<p id="typing-indicator">{usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."}</p>)
+    }
+    return entryComponents
+  }
+
   return (
     <div id="content">
       <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
@@ -162,12 +180,11 @@ export default function Home() {
         value={conversation} 
         onChange={handleConversationChange} 
       />
-      {usersTyping.current.length == 1 && <p id="typing-indicator">{usersTyping.current[0] + " is typing..."}</p>}
-      {usersTyping.current.length > 1 && <p id="typing-indicator">{usersTyping.current.slice(0, usersTyping.current.length-1).join(", ") + ", and " + usersTyping.current[usersTyping.current.length-1] + " are typing..."}</p>}
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
-      <br />
-      <p id="message-box">No message received yet.</p>
+      {/* <p id="message-box">No message received yet.</p> */}
       {generateLogs()} 
+      <br/>
+      {showTypingUsers()}
     </div>
   )
 }
