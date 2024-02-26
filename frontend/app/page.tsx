@@ -1,8 +1,13 @@
 'use client'
 
 import Image from "next/image"
+import NameForm from './ChatNameForm.tsx'
+import MessageForm from './ChatMessageForm.tsx'
 
 export default function Home() {
+  // TODO: set up the websocket as some sort of React Hook so other React Components can use it
+  // potentially using useRef?
+
   // websocket connections
   const ws = new WebSocket("ws://localhost:8080")
   ws.addEventListener("open", () => {
@@ -24,22 +29,6 @@ export default function Home() {
   let name : string = ''
   let message : string = ''
 
-  function changeName() {
-    const nameInput : HTMLInputElement | null = document.getElementById("name-input") as HTMLInputElement
-
-    if (nameInput !== null) {
-      name = nameInput.value.trim()
-    }
-  }
-
-  function changeMessage() {
-    const messageInput : HTMLInputElement | null = document.getElementById("message-input") as HTMLInputElement
-
-    if (messageInput !== null) {
-      message = messageInput.value.trim()
-    }
-  }
-
   function sendMessage() {
     ws.send(JSON.stringify({
       "user": name === '' ? "Unnamed User" : name,
@@ -48,13 +37,10 @@ export default function Home() {
   }
 
   return (
-    <div>
-      <h1>Collaboration Board</h1>
-      <label htmlFor="name-input">Name: </label>
-      <input id="name-input" type="text" onChange={changeName} />
-      <br />
-      <label htmlFor="message-input">Message Content: </label>
-      <input id="message-input" type="text" onChange={changeMessage} />
+    <div id="content">
+      <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
+      <NameForm />
+      <MessageForm />
       <button onClick={sendMessage}>Send Message</button>
       <br />
       <p id="message-box">No message received yet.</p>
