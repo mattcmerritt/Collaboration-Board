@@ -89,6 +89,13 @@ export default function Home() {
       setMessage(messageInput.value.trim())
     }
 
+    // TODO: determine why it keeps defaulting
+    // get new conversation logs
+    ws.current.send(JSON.stringify({
+      'ws_msg_type': 'chat history',
+      'conversation': conversation === "" ? "default" : conversation
+    }))
+
     showTyping()
   }
 
@@ -103,7 +110,7 @@ export default function Home() {
       // get new conversation logs
       ws.current.send(JSON.stringify({
         'ws_msg_type': 'chat history',
-        'conversation': conversationInput.value.trim() !== '' ? conversationInput.value.trim() : 'default'
+        'conversation': conversationInput.value.trim() === '' ? 'default' : conversationInput.value.trim()
       }))
     }
   }
