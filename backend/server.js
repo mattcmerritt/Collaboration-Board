@@ -30,7 +30,7 @@ database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = '
     }
     else {
         console.log('Messages table could not be found, creating it now!')
-        database_client.query("CREATE TABLE messages ( username varchar, message varchar, time_sent timestamp )")
+        database_client.query("CREATE TABLE messages ( username varchar, message varchar, conversation varchar, time_sent timestamp )")
         console.log('Messages table created!')
     }
 })
@@ -41,16 +41,23 @@ wss.on('connection', function connection(socket) {
     socket.on('message', (data) => {
         data = JSON.parse(data)
         
-        console.log(`Message received from ${data.user}'s client: "${data.message}"`)
+        console.log(`Message received from ${data.user}'s client for ${data.conversation}: "${data.message}"`)
 
+        // adding a message to the database
+        database_client.query("INSERT INTO messages (username, message, conversation, time_sent) VALUES ($1, $2, $3, NOW())", [data.user, data.message, data.conversation])
+        console.log('Message logged in database.')
+
+        // sending the message over to all active clients
         wss.clients.forEach(function each(client) {
             if (client.readyState === ws.WebSocket.OPEN) {
                 client.send(JSON.stringify({
                     'user': data.user,
-                    'message': data.message
+                    'message': data.message,
+                    'conversation': data.conversation
                 }))
             } 
         })
+        console.log('Message sent out to all connected clients.')
     })
 
     socket.on('close', () => {
