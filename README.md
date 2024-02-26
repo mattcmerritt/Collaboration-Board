@@ -20,6 +20,36 @@ npm install
 npm run start
 ```
 
+- Complete the following database setup.
+    - Install PostgreSQL from [https://www.enterprisedb.com/downloads/postgres-postgresql-downloads](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
+        - Confirmed working with v16.2 for Windows x86-64.
+        - Save the password for the `postgres` superuser, as this will be needed for the backend later.
+        - Also save the port used for the database.
+
+    - For Windows, ensure that the command `psql` can be run from the command line.
+        - If not, it is possible that you need to update your PATH.
+        - Assuming the default installation, add the following to your PATH:
+        ```
+        C:\Program Files\PostgreSQL\16\bin
+        ```
+        - Once added to path, you may need to restart your machine to get changes to take effect.
+
+    - To view the database, run the following:
+    ```
+    psql --username=postrges
+    ```
+
+- Create `.env` file using sample as a basis.
+    - For the default install of PostgreSQL, it will look like the following:
+    ```
+    # postgres database connection information
+    DB_USER='postgres'
+    DB_HOST='::1'
+    DB_DATABASE='postgres'
+    DB_PASSWORD='<REMOVED>'
+    DB_PORT=5432
+    ```
+
 ### Frontend
 
 - Navigate to the `frontend` directory.

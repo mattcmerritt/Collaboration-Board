@@ -3,6 +3,7 @@
 import Image from "next/image"
 import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
+import ConversationForm from './ChatConversationForm.tsx'
 import { useState } from 'react'
 
 export default function Home() {
@@ -10,23 +11,35 @@ export default function Home() {
   // potentially using useRef?
 
   // websocket connections
+  // if doing a demo for multiple machines, switch this to an IP address
   const ws = new WebSocket("ws://localhost:8080")
   ws.addEventListener("open", () => {
       console.log("Connected to websocket server.")
   })
 
   ws.addEventListener("message", (e : MessageEvent) => {
-      const message : {message : string, user : string} = JSON.parse(e.data)
-      console.log(`Message received from server: ${message.message}`)
+      const message : {ws_msg_type : string, message ?: string, user : string, conversation ?: string, typing ?: boolean} = JSON.parse(e.data)
+      
+      if (message.ws_msg_type === 'chat message') {
+        console.log(`Message received from server: ${message.message}`)
 
-      const messageTextbox : HTMLElement | null = document.getElementById("message-box")
+        const messageTextbox : HTMLElement | null = document.getElementById("message-box")
 
-      if (messageTextbox !== null) {
-        messageTextbox.innerHTML = `${message.user}: ${message.message}`
+        if (messageTextbox !== null) {
+          messageTextbox.innerHTML = `${message.user}: ${message.message}`
+        }
+      }
+      else if (message.ws_msg_type === 'user typing') {
+        if (message.typing) {
+          console.log(`Received from server that ${message.user} is typing.`)
+        }
+        else {
+          console.log(`Received from server that ${message.user} is no longer typing.`)
+        }
       }
   })
 
-  // name management
+  // name hook
   const [name, setName] = useState("")
 
   function handleNameChange() {
@@ -37,6 +50,7 @@ export default function Home() {
     }
   }
 
+  // message hook
   const [message, setMessage] = useState("")
 
   function handleMessageChange() {
@@ -45,12 +59,34 @@ export default function Home() {
     if (messageInput !== null) {
       setMessage(messageInput.value.trim())
     }
+
+    showTyping()
+  }
+
+  // conversation hook
+  const [conversation, setConversation] = useState("")
+
+  function handleConversationChange() {
+    const conversationInput : HTMLInputElement | null = document.getElementById("conversation-input") as HTMLInputElement
+
+    if (conversationInput !== null) {
+      setConversation(conversationInput.value.trim())
+    }
   }
 
   function sendMessage() {
     ws.send(JSON.stringify({
-      "user": name === '' ? "Unnamed User" : name,
-      "message": message === '' ? "No message content." : message
+      "ws_msg_type": "chat message",
+      "user": name === "" ? "Unnamed User" : name,
+      "message": message === "" ? "No message content." : message,
+      "conversation": conversation === "" ? "default" : conversation
+    }))
+  }
+
+  function showTyping() {
+    ws.send(JSON.stringify({
+      "ws_msg_type": "user typing",
+      "user": name === "" ? "Unnamed User" : name
     }))
   }
 
@@ -64,6 +100,10 @@ export default function Home() {
       <MessageForm 
         value={message} 
         onChange={handleMessageChange} 
+      />
+      <ConversationForm 
+        value={conversation} 
+        onChange={handleConversationChange} 
       />
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       <br />
