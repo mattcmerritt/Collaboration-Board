@@ -4,6 +4,7 @@ import Image from "next/image"
 import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ConversationForm from './ChatConversationForm.tsx'
+import ChatLogEntry from "./ChatLogEntry.tsx"
 import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
@@ -97,6 +98,47 @@ export default function Home() {
     }))
   }
 
+  type ChatLogEntry = {
+    username : string,
+    message : string,
+    conversation : string,
+    time_sent : string
+  }
+
+  function generateLogs() {
+    // TODO: get entries from database
+    // const entries : ChatLogEntry[] = []
+    // TODO: remove this example entries list and uncomment line above
+    const entries : ChatLogEntry[] = [
+      {
+        "username" : "Mike",
+        "message" : "hi",
+        "conversation" : "debug",
+        "time_sent" : "first"
+      },
+      {
+        "username" : "Mike",
+        "message" : "bye",
+        "conversation" : "debug",
+        "time_sent" : "second"
+      },
+    ]
+    const entryComponents : JSX.Element[] = []
+
+    entries.forEach(entry => {
+      entryComponents.push(
+        <ChatLogEntry
+          key = {entry.conversation + entry.username + entry.time_sent}
+          username = {entry.username}
+          message = {entry.message}
+          conversation = {entry.conversation}
+        />
+      )
+    });
+
+    return entryComponents
+  }
+
   return (
     <div id="content">
       <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
@@ -115,6 +157,7 @@ export default function Home() {
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       <br />
       <p id="message-box">No message received yet.</p>
+      {generateLogs()} 
     </div>
   )
 }
