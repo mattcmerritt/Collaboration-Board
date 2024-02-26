@@ -4,19 +4,31 @@ import Image from "next/image"
 
 export default function Home() {
   // websocket connections
+  // if doing a demo for multiple machines, switch this to an IP address
   const ws = new WebSocket("ws://localhost:8080")
   ws.addEventListener("open", () => {
       console.log("Connected to websocket server.")
   })
 
   ws.addEventListener("message", (e : MessageEvent) => {
-      const message : {message : string, user : string} = JSON.parse(e.data)
-      console.log(`Message received from server: ${message.message}`)
+      const message : {ws_msg_type : string, message ?: string, user : string, conversation ?: string, typing ?: boolean} = JSON.parse(e.data)
+      
+      if (message.ws_msg_type === 'chat message') {
+        console.log(`Message received from server: ${message.message}`)
 
-      const messageTextbox : HTMLElement | null = document.getElementById("message-box")
+        const messageTextbox : HTMLElement | null = document.getElementById("message-box")
 
-      if (messageTextbox !== null) {
-        messageTextbox.innerHTML = `${message.user}: ${message.message}`
+        if (messageTextbox !== null) {
+          messageTextbox.innerHTML = `${message.user}: ${message.message}`
+        }
+      }
+      else if (message.ws_msg_type === 'user typing') {
+        if (message.typing) {
+          console.log(`Received from server that ${message.user} is typing.`)
+        }
+        else {
+          console.log(`Received from server that ${message.user} is no longer typing.`)
+        }
       }
   })
 
@@ -39,6 +51,8 @@ export default function Home() {
     if (messageInput !== null) {
       message = messageInput.value.trim()
     }
+
+    showTyping()
   }
 
   function changeConversation() {
@@ -51,9 +65,17 @@ export default function Home() {
 
   function sendMessage() {
     ws.send(JSON.stringify({
-      "user": name === '' ? "Unnamed User" : name,
-      "message": message === '' ? "No message content." : message,
-      "conversation": conversation === '' ? "default" : conversation
+      "ws_msg_type": "chat message",
+      "user": name === "" ? "Unnamed User" : name,
+      "message": message === "" ? "No message content." : message,
+      "conversation": conversation === "" ? "default" : conversation
+    }))
+  }
+
+  function showTyping() {
+    ws.send(JSON.stringify({
+      "ws_msg_type": "user typing",
+      "user": name === "" ? "Unnamed User" : name
     }))
   }
 
