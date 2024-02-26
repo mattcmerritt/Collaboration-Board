@@ -133,6 +133,17 @@ wss.on('connection', function connection(socket) {
                 still_typing_users.push(data.user)
             }
         }
+        else if (data.ws_msg_type === 'chat history') {
+            database_client.query("SELECT * FROM messages WHERE conversation=$1 ORDER BY time_sent", [data.conversation]).then((result) => {
+                // send message history to new client
+                socket.send(JSON.stringify({
+                    'ws_msg_type': 'chat history',
+                    'conversation': data.conversation,
+                    'messages': result.rows
+                }))
+            })
+            console.log(`Chat:\t\tSent previous message log for ${data.conversation}.`)
+        }
     })
 
     socket.on('close', () => {

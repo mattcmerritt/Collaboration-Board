@@ -93,6 +93,11 @@ export default function Home() {
 
     if (conversationInput !== null) {
       setConversation(conversationInput.value.trim())
+      // get new conversation logs
+      ws.current.send(JSON.stringify({
+        'ws_msg_type': 'chat history',
+        'conversation': conversationInput.value.trim() !== '' ? conversationInput.value.trim() : 'default'
+      }))
     }
   }
 
