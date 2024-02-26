@@ -8,6 +8,17 @@ import ChatLogEntry from "./ChatLogEntry.tsx"
 import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
+  // type for loading chat entries from database
+  type ChatLogEntry = {
+    username : string,
+    message : string,
+    conversation : string,
+    time_sent : string
+  }
+
+  // set up hook for message history
+  const [history, setHistory] = useState(null as unknown as ChatLogEntry[] | undefined)
+
   // set up the websocket as some sort of React Hook so other React Components can use it
   // TODO: determine if this type casting will cause problems when using useRef
   const ws = useRef(null as unknown as WebSocket)
@@ -21,7 +32,7 @@ export default function Home() {
     })
 
     socket.addEventListener("message", (e : MessageEvent) => {
-        const message : {ws_msg_type : string, message ?: string, user : string, conversation ?: string, typing ?: boolean} = JSON.parse(e.data)
+        const message : {ws_msg_type : string, message ?: string, user ?: string, conversation ?: string, typing ?: boolean, messages ?: ChatLogEntry[]} = JSON.parse(e.data)
         
         if (message.ws_msg_type === 'chat message') {
           console.log(`Message received from server: ${message.message}`)
@@ -39,6 +50,9 @@ export default function Home() {
           else {
             console.log(`Received from server that ${message.user} is no longer typing.`)
           }
+        }
+        else if (message.ws_msg_type === 'chat history') {
+          setHistory(message.messages)
         }
     })
 
@@ -98,44 +112,27 @@ export default function Home() {
     }))
   }
 
-  type ChatLogEntry = {
-    username : string,
-    message : string,
-    conversation : string,
-    time_sent : string
-  }
-
   function generateLogs() {
     // TODO: get entries from database
     // const entries : ChatLogEntry[] = []
     // TODO: remove this example entries list and uncomment line above
-    const entries : ChatLogEntry[] = [
-      {
-        "username" : "Mike",
-        "message" : "hi",
-        "conversation" : "debug",
-        "time_sent" : "first"
-      },
-      {
-        "username" : "Mike",
-        "message" : "bye",
-        "conversation" : "debug",
-        "time_sent" : "second"
-      },
-    ]
     const entryComponents : JSX.Element[] = []
 
-    entries.forEach(entry => {
-      entryComponents.push(
-        <ChatLogEntry
-          key = {entry.conversation + entry.username + entry.time_sent}
-          username = {entry.username}
-          message = {entry.message}
-          conversation = {entry.conversation}
-        />
-      )
-    });
+    const entries : ChatLogEntry[] | undefined = history;
 
+    if (entries) {
+      entries.forEach(entry => {
+        entryComponents.push(
+          <ChatLogEntry
+            key = {entry.conversation + entry.username + entry.time_sent}
+            username = {entry.username}
+            message = {entry.message}
+            conversation = {entry.conversation}
+          />
+        )
+      })
+    }
+    
     return entryComponents
   }
 
