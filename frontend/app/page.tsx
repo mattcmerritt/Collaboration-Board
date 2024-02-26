@@ -5,45 +5,67 @@ import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
-  // TODO: set up the websocket as some sort of React Hook so other React Components can use it
-  // potentially using useRef?
+  // type for loading chat entries from database
+  type ChatLogEntry = {
+    username : string,
+    message : string,
+    conversation : string,
+    time_sent : string
+  }
+
+  // set up hook for message history
+  const [history, setHistory] = useState(null as unknown as ChatLogEntry[] | undefined)
+
+  // set up the websocket as some sort of React Hook so other React Components can use it
+  // TODO: determine if this type casting will cause problems when using useRef
+  const ws = useRef(null as unknown as WebSocket)
+
+  const usersTyping = useRef([] as string[])
 
   // websocket connections
-  // if doing a demo for multiple machines, switch this to an IP address
-  const ws = new WebSocket("ws://localhost:8080")
-  ws.addEventListener("open", () => {
-      console.log("Connected to websocket server.")
-  })
+  useEffect(() => {
+    // if doing a demo for multiple machines, switch this to an IP address
+    const socket = new WebSocket("ws://localhost:8080")
+    socket.addEventListener("open", () => {
+        console.log("Connected to websocket server.")
+    })
 
-  const usersTyping : string[] = []
-  ws.addEventListener("message", (e : MessageEvent) => {
-      const message : {ws_msg_type : string, message ?: string, user : string, conversation ?: string, typing ?: boolean} = JSON.parse(e.data)
-      
-      if (message.ws_msg_type === 'chat message') {
-        console.log(`Message received from server: ${message.message}`)
+    socket.addEventListener("message", (e : MessageEvent) => {
+        const message : {ws_msg_type : string, message ?: string, user ?: string, conversation ?: string, typing ?: boolean, messages ?: ChatLogEntry[]} = JSON.parse(e.data)
+        
+        if (message.ws_msg_type === 'chat message') {
+          console.log(`Message received from server: ${message.message}`)
 
-        const messageTextbox : HTMLElement | null = document.getElementById("message-box")
+          const messageTextbox : HTMLElement | null = document.getElementById("message-box")
 
-        if (messageTextbox !== null) {
-          messageTextbox.innerHTML = `${message.user}: ${message.message}`
-        }
-      }
-      else if (message.ws_msg_type === 'user typing') {
-        if (message.typing) {
-          console.log(`Received from server that ${message.user} is typing.`)
-          usersTyping.push(message.user)
-        }
-        else {
-          console.log(`Received from server that ${message.user} is no longer typing.`)
-          if(usersTyping.indexOf(message.user) < 0) {
-            usersTyping.splice(usersTyping.indexOf(message.user), 1)
+          if (messageTextbox !== null) {
+            messageTextbox.innerHTML = `${message.user}: ${message.message}`
           }
         }
-      }
-  })
+        else if (message.ws_msg_type === 'user typing') {
+          if (message.typing) {
+            console.log(`Received from server that ${message.user} is typing.`)
+            usersTyping.current.push(message.user as string)
+          }
+          else {
+            console.log(`Received from server that ${message.user} is no longer typing.`)
+            if(usersTyping.current.indexOf(message.user as string) >= 0) {
+              usersTyping.current.splice(usersTyping.current.indexOf(message.user as string), 1)
+            }
+          }
+        }
+        else if (message.ws_msg_type === 'chat history') {
+          setHistory(message.messages)
+        }
+    })
+
+    ws.current = socket
+
+    return () => socket.close()
+  }, [])
 
   // name hook
   const [name, setName] = useState("")
@@ -77,11 +99,16 @@ export default function Home() {
 
     if (conversationInput !== null) {
       setConversation(conversationInput.value.trim())
+      // get new conversation logs
+      ws.current.send(JSON.stringify({
+        'ws_msg_type': 'chat history',
+        'conversation': conversationInput.value.trim() !== '' ? conversationInput.value.trim() : 'default'
+      }))
     }
   }
 
   function sendMessage() {
-    ws.send(JSON.stringify({
+    ws.current.send(JSON.stringify({
       "ws_msg_type": "chat message",
       "user": name === "" ? "Unnamed User" : name,
       "message": message === "" ? "No message content." : message,
@@ -90,50 +117,33 @@ export default function Home() {
   }
 
   function showTyping() {
-    ws.send(JSON.stringify({
+    ws.current.send(JSON.stringify({
       "ws_msg_type": "user typing",
       "user": name === "" ? "Unnamed User" : name
     }))
-  }
-
-  type ChatLogEntry = {
-    username : string,
-    message : string,
-    conversation : string,
-    time_sent : string
   }
 
   function generateLogs() {
     // TODO: get entries from database
     // const entries : ChatLogEntry[] = []
     // TODO: remove this example entries list and uncomment line above
-    const entries : ChatLogEntry[] = [
-      {
-        "username" : "Mike",
-        "message" : "hi",
-        "conversation" : "debug",
-        "time_sent" : "first"
-      },
-      {
-        "username" : "Mike",
-        "message" : "bye",
-        "conversation" : "debug",
-        "time_sent" : "second"
-      },
-    ]
     const entryComponents : JSX.Element[] = []
 
-    entries.forEach(entry => {
-      entryComponents.push(
-        <ChatLogEntry
-          key = {entry.conversation + entry.username + entry.time_sent}
-          username = {entry.username}
-          message = {entry.message}
-          conversation = {entry.conversation}
-        />
-      )
-    });
+    const entries : ChatLogEntry[] | undefined = history;
 
+    if (entries) {
+      entries.forEach(entry => {
+        entryComponents.push(
+          <ChatLogEntry
+            key = {entry.conversation + entry.username + entry.time_sent}
+            username = {entry.username}
+            message = {entry.message}
+            conversation = {entry.conversation}
+          />
+        )
+      })
+    }
+    
     return entryComponents
   }
 
@@ -152,17 +162,8 @@ export default function Home() {
         value={conversation} 
         onChange={handleConversationChange} 
       />
-      {usersTyping.length !== 0 
-        ? 
-        <div id="typing-indicator">
-          {usersTyping.length == 1 
-            ? "{usersTyping[0]} is typing..." 
-            : usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."
-          }
-        </div>
-        :
-        <></>
-      }
+      {usersTyping.current.length == 1 && <p id="typing-indicator">{usersTyping.current[0] + " is typing..."}</p>}
+      {usersTyping.current.length > 1 && <p id="typing-indicator">{usersTyping.current.slice(0, usersTyping.current.length-1).join(", ") + ", and " + usersTyping.current[usersTyping.current.length-1] + " are typing..."}</p>}
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       <br />
       <p id="message-box">No message received yet.</p>
