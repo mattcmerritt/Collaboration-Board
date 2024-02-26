@@ -6,7 +6,7 @@ const wss = new ws.WebSocketServer({ port: 8080 })
 
 console.log('Started server on port 8080')
 
-const client = new pg.Client({
+const database_client = new pg.Client({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_DATABASE,
@@ -23,9 +23,16 @@ const client = new pg.Client({
 // })
 
 // verifying that necessary tables already exist
-client.connect()
-client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = 'messages' )").then((result) => {
-    console.log(result.rows)
+database_client.connect()
+database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = 'messages' )").then((result) => {
+    if (result.rows[0]['exists']) {
+        console.log('Messages table successfully found!')
+    }
+    else {
+        console.log('Messages table could not be found, creating it now!')
+        database_client.query("CREATE TABLE messages ( username varchar, message varchar, time_sent timestamp )")
+        console.log('Messages table created!')
+    }
 })
 
 wss.on('connection', function connection(socket) {
