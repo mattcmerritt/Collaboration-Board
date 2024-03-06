@@ -36,7 +36,7 @@ npm run start
 
     - To view the database, run the following:
     ```
-    psql --username=postrges
+    psql --username=postgres
     ```
 
 - Create `.env` file using sample as a basis.
