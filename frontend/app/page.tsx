@@ -16,6 +16,12 @@ export default function Home() {
     time_sent : string
   }
 
+  // type for loading users
+  type UserDetails = {
+    name: string,
+    conversation: string
+  }
+
   // react state hooks
   const [history, setHistory] = useState([] as ChatLogEntry[] | undefined)
   const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
@@ -44,7 +50,7 @@ export default function Home() {
         timestamp ?: string,
         typing ?: boolean, 
         messages ?: ChatLogEntry[], 
-        users ?: string[]
+        users ?: UserDetails[]
       } = JSON.parse(e.data)
       
       // if a message is received, add it to the message history
@@ -61,7 +67,9 @@ export default function Home() {
       }
       // if a user is typing, add them to the list of typing users
       else if (message.ws_msg_type === 'user typing') {
-        setUsersTyping(message.users)
+        // filter out users not typing in the current conversation
+        const usersInConversation = message.users?.filter((user : UserDetails) => user.conversation === conversationRef.current)
+        setUsersTyping(usersInConversation?.map((user : UserDetails) => user.name))
       }
       // if a request to replace the chat history is received, discard and replace history
       else if (message.ws_msg_type === 'chat history') {
@@ -117,7 +125,8 @@ export default function Home() {
   function showTyping() {
     ws.current.send(JSON.stringify({
       "ws_msg_type": "user typing",
-      "user": name === "" ? "Unnamed User" : name
+      "user": name === "" ? "Unnamed User" : name,
+      "conversation": conversationRef.current === "" ? "default" : conversationRef.current
     }))
   }
 

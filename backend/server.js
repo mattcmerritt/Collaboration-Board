@@ -29,6 +29,7 @@ database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = '
 
 
 // system for keeping track of what users are currently typing in the application
+// currently store objects of form {name: string, conversation: string}
 const typing_users = []
 let still_typing_users = []
 
@@ -36,7 +37,7 @@ function updateTypingUserList() {
     // go through the list of users that are marked as typing
     for (let i = 0; i < typing_users.length; i++) {
         // ensure that each user has sent a message in this time frame
-        if (still_typing_users.find((element) => typing_users[i] === element) === undefined) {
+        if (still_typing_users.find((element) => typing_users[i].name === element.name && typing_users[i].convesation === element.conversation) === undefined) {
             // remove the user from the tracked user list
             const removed_users = typing_users.splice(i, 1);
             
@@ -104,12 +105,17 @@ wss.on('connection', function connection(socket) {
             })
         }
         else if (data.ws_msg_type === 'user typing') {
+            // creating the user object from this message
+            const typing_user = {
+                name: data.user,
+                conversation: data.conversation
+            }
             // if the user is not currently marked as typing
-            if (typing_users.find((element) => element === data.user) === undefined) {
+            if (typing_users.find((element) => element.name === typing_user.name && element.conversation === typing_user.conversation) === undefined) {
                 // add user to lists in memory
-                typing_users.push(data.user)
+                typing_users.push(typing_user)
                 // mark that the user is typing this frame
-                still_typing_users.push(data.user)
+                still_typing_users.push(typing_user)
                 
                 // indicating that a user is typing on clients by sending new list
                 wss.clients.forEach(function each(client) {
@@ -125,7 +131,7 @@ wss.on('connection', function connection(socket) {
             }
             else {
                 // mark that the user is typing this frame
-                still_typing_users.push(data.user)
+                still_typing_users.push(typing_user)
             }
         }
         else if (data.ws_msg_type === 'chat history') {
