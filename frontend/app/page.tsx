@@ -11,10 +11,10 @@ export default function Home() {
   }
 
   // state variable for card id
-  const [colCount, setColCount] = useState(1)
+  const colCountRef = useRef(1)
 
   function increaseColCount() {
-    setColCount(c => c + 1)
+    colCountRef.current = colCountRef.current + 1
   }
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
@@ -37,7 +37,7 @@ export default function Home() {
       
       // if a column is added, render it
       if (message.ws_msg_type === 'add column') {
-        setColumns(c => c.concat({id:colCount}))
+        setColumns(c => c.concat({id:colCountRef.current}))
         increaseColCount()
       }
       // if a column is renamed, update it
@@ -63,7 +63,7 @@ export default function Home() {
   function addColumn() {
     ws.current.send(JSON.stringify({
       "ws_msg_type": "add column",
-      "id": colCount,
+      "id": colCountRef.current,
       "name": ""
     }))
   }
@@ -84,7 +84,7 @@ export default function Home() {
             cardCount={cardCount}
             onCardCountIncrease={increaseCardCount}
             ws={ws.current}
-            colCount={colCount}
+            colCount={colCountRef.current}
           />
         )
       })
