@@ -24,8 +24,8 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
       cards?.forEach(card => {
         cardComponents.push(
           <KanbanCard 
-            value={card.id}
-            onChange={() => console.log("card change on id " + card.id)}
+            id={card.id}
+            col={props.colNum}
             ws={props.ws}
           />
         )
