@@ -14,14 +14,6 @@ const database_client = new pg.Client({
     port: process.env.DB_PORT,
 })
 
-// example database connection
-// console.log('Verifying that the database is working:')
-// client.connect().then(() => {
-//     client.query('SELECT NOW()').then((result) => {
-//         console.log(result.rows)
-//     })
-// })
-
 // verifying that necessary tables already exist
 database_client.connect()
 database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = 'messages' )").then((result) => {
@@ -93,21 +85,23 @@ wss.on('connection', function connection(socket) {
             console.log(`Chat:\t\tMessage received from ${data.user}'s client for ${data.conversation}: "${data.message}"`)
 
             // adding a message to the database
-            database_client.query("INSERT INTO messages (username, message, conversation, time_sent) VALUES ($1, $2, $3, NOW())", [data.user, data.message, data.conversation])
-            console.log('Chat:\t\tMessage logged in database.')
+            database_client.query("INSERT INTO messages (username, message, conversation, time_sent) VALUES ($1, $2, $3, NOW()) RETURNING *", [data.user, data.message, data.conversation]).then((result) => {
+                console.log('Chat:\t\tMessage logged in database.')
 
-            // sending the message over to all active clients
-            wss.clients.forEach(function each(client) {
-                if (client.readyState === ws.WebSocket.OPEN) {
-                    client.send(JSON.stringify({
-                        'ws_msg_type': 'chat message',
-                        'user': data.user,
-                        'message': data.message,
-                        'conversation': data.conversation
-                    }))
-                } 
+                // sending the message over to all active clients
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === ws.WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            'ws_msg_type': 'chat message',
+                            'user': data.user,
+                            'message': data.message,
+                            'conversation': data.conversation,
+                            'timestamp': result.rows[0].time_sent
+                        }))
+                    } 
+                })
+                console.log('Chat:\t\tMessage sent out to all connected clients.')
             })
-            console.log('Chat:\t\tMessage sent out to all connected clients.')
         }
         else if (data.ws_msg_type === 'user typing') {
             // if the user is not currently marked as typing
@@ -137,16 +131,11 @@ wss.on('connection', function connection(socket) {
         else if (data.ws_msg_type === 'chat history') {
             database_client.query("SELECT * FROM messages WHERE conversation=$1 ORDER BY time_sent", [data.conversation]).then((result) => {
                 // indicating that a user is typing on clients by sending new list
-                wss.clients.forEach(function each(client) {
-                    if (client.readyState === ws.WebSocket.OPEN) {
-                        // send message history to new client
-                        client.send(JSON.stringify({
-                            'ws_msg_type': 'chat history',
-                            'conversation': data.conversation,
-                            'messages': result.rows
-                        }))
-                    }
-                })
+                socket.send(JSON.stringify({
+                    'ws_msg_type': 'chat history',
+                    'conversation': data.conversation,
+                    'messages': result.rows
+                }))
             })
             console.log(`Chat:\t\tSent previous message log for ${data.conversation}.`)
         }
