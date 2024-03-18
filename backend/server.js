@@ -14,19 +14,37 @@ const database_client = new pg.Client({
     port: process.env.DB_PORT,
 })
 
-// verifying that necessary tables already exist
 database_client.connect()
-database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = 'messages' )").then((result) => {
-    if (result.rows[0]['exists']) {
-        console.log('Messages table successfully found!')
-    }
-    else {
-        console.log('Messages table could not be found, creating it now!')
-        database_client.query("CREATE TABLE messages ( username varchar, message varchar, conversation varchar, time_sent timestamp )")
-        console.log('Messages table created!')
-    }
-})
 
+// verifying that necessary tables already exist
+const tables = [
+    {
+        table: 'messages',
+        schema: 'username varchar, message varchar, conversation varchar, time_sent timestamp'
+    },
+    {
+        table: 'cards',
+        schema: 'id int, name varchar'
+    },
+    {
+        table: 'columns',
+        schema: 'id int, name varchar'
+    }
+]
+// checking for the tables
+for (const table of tables) {
+    database_client.query("SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename = $1 )", [table['table']]).then((result) => {
+        if (result.rows[0]['exists']) {
+            console.log(`${table['table']} table successfully found!`)
+        }
+        else {
+            console.log(`${table['table']} table could not be found, creating it now!`)
+            const query = `CREATE TABLE ${table['table']} ( ${table['schema']} )`
+            database_client.query(query)
+            console.log(`${table['table']} table created!`)
+        }
+    })
+}
 
 // system for keeping track of what users are currently typing in the application
 // currently store objects of form {name: string, conversation: string}
