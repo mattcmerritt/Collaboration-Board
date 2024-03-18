@@ -6,38 +6,51 @@ import KanbanColumn from "./KanbanColumn.tsx"
 import ChatPage from "./ChatPage.tsx"
 
 export default function Home() {
-  // card hook?
-  const [col, setCol] = useState("")
+  type Column = {
+    id : number
+  }
 
-  function handleColChange() {
-    console.log("Something changed with the column")
+  // state variable for card id
+  const [colCount, setColCount] = useState(1)
+
+  function increaseColCount() {
+    setColCount(c => c + 1)
+  }
+
+  // state variable for card id
+  const [cardCount, setCardCount] = useState(1)
+
+  function increaseCardCount() {
+    setCardCount(c => c + 1)
+  }
+
+  const [columns, setColumns] = useState([] as Column[])
+
+  function addColumn() {
+    setColumns(c => c.concat({id:colCount}))
+    increaseColCount()
   }
 
   // END OF STATE STUFF
 
-  const [columns, setColumns] = useState([] as string[])
-
-  function addColumn() {
-    setColumns(c => c.concat("new"))
-  }
-
   function displayColumns() {
     const columnComponents : JSX.Element[] = []
 
-    const columnsToDisplay : string[] = columns
+    // TODO: ws check or query to make sure we have all the cards
+    const columnsToDisplay : Column[] = columns
 
     if (columnsToDisplay) {
       columns?.forEach(col => {
         columnComponents.push(
           <KanbanColumn 
-            value={"New Column"}
-            onChange={setCol}
+            colNum={col.id}
+            cardCount={cardCount}
+            onCardCountIncrease={increaseCardCount}
+            // might need to pass ws ref here as well
           />
         )
       })
     }
-
-    console.log("displaying: length is " + columnComponents.length)
 
     return columnComponents
   }
