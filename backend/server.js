@@ -207,18 +207,32 @@ wss.on('connection', function connection(socket) {
             console.log(`Cards:\t\tAdded card ${data.id}: ${data.name} in ${data.column}.`)
         }
         else if (data.ws_msg_type === 'update card') {
-            database_client.query("UPDATE cards name=$1, column=$2 WHERE id=$3", [data.name, data.column, data.id])
+            database_client.query("UPDATE cards SET name=$1 WHERE id=$2", [data.name, data.id])
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
-                        'ws_msg_type': 'add card',
+                        'ws_msg_type': 'update card',
                         'id': data.id,
                         'name': data.name,
                         'column': data.column
                     }))
                 }
             })
-            console.log(`Cards:\t\tUpdated card ${data.id} to now say ${data.name} in ${data.column}.`)
+            console.log(`Cards:\t\tUpdated card ${data.id} to now say ${data.name} in column ${data.column}.`)
+        }
+        else if (data.ws_msg_type === 'move card') {
+            database_client.query("UPDATE cards SET column=$1 WHERE id=$2", [data.column, data.id])
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'move card',
+                        'id': data.id,
+                        'name': data.name,
+                        'column': data.column
+                    }))
+                }
+            })
+            console.log(`Cards:\t\Moved card ${data.id} with ${data.name} into column ${data.column}.`)
         }
     })
 
