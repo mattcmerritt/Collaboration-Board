@@ -234,6 +234,25 @@ wss.on('connection', function connection(socket) {
             })
             console.log(`Cards:\t\Moved card ${data.id} with ${data.name} into column ${data.column}.`)
         }
+        else if (data.ws_msg_type === 'load columns') {
+            database_client.query("SELECT * FROM columns ORDER BY id").then((result) => {
+                socket.send(JSON.stringify({
+                    'ws_msg_type': 'load columns',
+                    'columns': result.rows
+                }))
+            })
+            console.log(`Chat:\t\tSent previous columns.`)
+        }
+        else if (data.ws_msg_type === 'load cards') {
+            database_client.query("SELECT * FROM columns WHERE column=$1 ORDER BY id", [data.column]).then((result) => {
+                socket.send(JSON.stringify({
+                    'ws_msg_type': 'load cards',
+                    'cards': result.rows,
+                    'column': data.column
+                }))
+            })
+            console.log(`Chat:\t\tSent previous cards for column ${data.column}.`)
+        }
     })
 
     socket.on('close', () => {
