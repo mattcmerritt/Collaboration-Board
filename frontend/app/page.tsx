@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useState, useEffect, useRef } from 'react'
 import KanbanColumn from "./KanbanColumn.tsx"
+import ChatPage from "./ChatPage.tsx"
 
 export default function Home() {
   // card hook?
@@ -49,6 +50,8 @@ export default function Home() {
       <div id="board" className="flex bg-blue-300">
         {displayColumns()}
       </div>
+
+      <ChatPage />
     </div>
   )
 }

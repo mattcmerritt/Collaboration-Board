@@ -167,7 +167,6 @@ export default function ChatPage() {
 
   return (
     <div id="content">
-      <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
       <NameForm 
         value={name} 
         onChange={handleNameChange} 
