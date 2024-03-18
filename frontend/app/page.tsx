@@ -48,7 +48,6 @@ export default function Home() {
         }
         else if (message.ws_msg_type === 'user typing') {
           setUsersTyping(message.users)
-          console.log(message.users)
         }
         else if (message.ws_msg_type === 'chat history') {
           setHistory(message.messages)
@@ -80,13 +79,6 @@ export default function Home() {
     if (messageInput !== null) {
       setMessage(messageInput.value.trim())
     }
-
-    // TODO: determine why it keeps defaulting
-    // get new conversation logs
-    ws.current.send(JSON.stringify({
-      'ws_msg_type': 'chat history',
-      'conversation': conversation === "" ? "default" : conversation
-    }))
 
     showTyping()
   }
