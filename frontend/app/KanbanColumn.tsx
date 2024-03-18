@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, cardCount : any, onCardCountIncrease : any, ws : WebSocket, colCount : any}) {
+export default function KanbanColumn(props : { colNum : any, cardCount : MutableRefObject<number>, colCount : MutableRefObject<number>, ws : WebSocket}) {
   type Card = {
     id : number,
+    name: string,
     col : number
   }
   
@@ -27,12 +28,12 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
       
       // if a card is added, render it
       if (message.ws_msg_type === 'add card') {
-        setCards(c => c.concat({id:message.id, col:message.column}))
-        props.onCardCountIncrease()
+        setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
+        props.cardCount.current = props.cardCount.current + 1
       }
       // if a card is added, render it
       else if (message.ws_msg_type === 'move card') {
-        setCards(c => c.concat({id:message.id, col:message.column}))
+        setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
       }
       // if a card is removed, filter it out
       else if (message.ws_msg_type === 'remove card') {
@@ -49,7 +50,7 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
   function addCard() {
     props.ws.send(JSON.stringify({
       "ws_msg_type": "add card",
-      "id": props.cardCount,
+      "id": props.cardCount.current,
       "name": "",
       "column": props.colNum
     }))
@@ -69,9 +70,10 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
           cardComponents.push(
             <KanbanCard 
               id={card.id}
+              name={card.name}
               col={props.colNum}
               ws={props.ws}
-              colCount={props.colCount}
+              colCount={props.colCount.current}
             />
           )
         }

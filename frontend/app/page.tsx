@@ -10,12 +10,10 @@ export default function Home() {
     id : number
   }
 
-  // state variable for card id
+  // state variables
+  const [columns, setColumns] = useState([] as Column[])
   const colCountRef = useRef(1)
-
-  function increaseColCount() {
-    colCountRef.current = colCountRef.current + 1
-  }
+  const cardCountRef = useRef(1)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -38,7 +36,7 @@ export default function Home() {
       // if a column is added, render it
       if (message.ws_msg_type === 'add column') {
         setColumns(c => c.concat({id:colCountRef.current}))
-        increaseColCount()
+        colCountRef.current = colCountRef.current + 1
       }
       // if a column is renamed, update it
       else if (message.ws_msg_type === 'update column') {
@@ -52,14 +50,6 @@ export default function Home() {
     return () => socket.close()
   }, [])
 
-  // state variable for card id
-  const [cardCount, setCardCount] = useState(1)
-  const [columns, setColumns] = useState([] as Column[])
-
-  function increaseCardCount() {
-    setCardCount(c => c + 1)
-  }
-
   function addColumn() {
     ws.current.send(JSON.stringify({
       "ws_msg_type": "add column",
@@ -67,8 +57,6 @@ export default function Home() {
       "name": ""
     }))
   }
-
-  // END OF STATE STUFF
 
   function displayColumns() {
     const columnComponents : JSX.Element[] = []
@@ -81,10 +69,9 @@ export default function Home() {
         columnComponents.push(
           <KanbanColumn 
             colNum={col.id}
-            cardCount={cardCount}
-            onCardCountIncrease={increaseCardCount}
+            cardCount={cardCountRef}
+            colCount={colCountRef}
             ws={ws.current}
-            colCount={colCountRef.current}
           />
         )
       })

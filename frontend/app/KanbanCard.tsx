@@ -1,6 +1,6 @@
 'use client'
 
-export default function KanbanCard(props : { id : any, col : any, ws : WebSocket, colCount : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any }) {
   function openChat() {
     console.log("the chat has been opened")
   }
@@ -48,7 +48,7 @@ export default function KanbanCard(props : { id : any, col : any, ws : WebSocket
   
   return (
     <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-      <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} />
+      <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
       <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
       <div className="flex flex-row">
         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
