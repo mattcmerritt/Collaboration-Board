@@ -163,6 +163,38 @@ wss.on('connection', function connection(socket) {
             })
             console.log(`Chat:\t\tSent previous message log for ${data.conversation}.`)
         }
+        else if (data.ws_msg_type === 'add column') {
+            database_client.query("INSERT INTO columns (id, name) VALUES ($1, $2) RETURNING *", [data.id, data.name])
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'add column',
+                        'id': data.id,
+                        'name': data.name
+                    }))
+                }
+            })
+            console.log(`Columns:\t\tAdded column ${data.id}: ${data.name}.`)
+        }
+        else if (data.ws_msg_type === 'update column') {
+            // TODO: IMPLEMENT
+        }
+        else if (data.ws_msg_type === 'add card') {
+            database_client.query("INSERT INTO cards (id, name) VALUES ($1, $2) RETURNING *", [data.id, data.name])
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'add card',
+                        'id': data.id,
+                        'name': data.name
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tAdded card ${data.id}: ${data.name}.`)
+        }
+        else if (data.ws_msg_type === 'update card') {
+            // TODO: IMPLEMENT
+        }
     })
 
     socket.on('close', () => {

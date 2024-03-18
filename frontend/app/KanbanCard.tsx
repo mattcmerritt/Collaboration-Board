@@ -1,6 +1,6 @@
 'use client'
 
-export default function KanbanCard(props : { value : any, onChange : any }) {
+export default function KanbanCard(props : { value : any, onChange : any, ws : WebSocket }) {
   function openChat() {
     console.log("the chat has been opened")
   }

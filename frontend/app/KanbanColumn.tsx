@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, cardCount : any, onCardCountIncrease : any}) {
+export default function KanbanColumn(props : { colNum : any, cardCount : any, onCardCountIncrease : any, ws : WebSocket}) {
   type Card = {
     id : number
   }
@@ -26,6 +26,7 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
           <KanbanCard 
             value={card.id}
             onChange={() => console.log("card change on id " + card.id)}
+            ws={props.ws}
           />
         )
       })

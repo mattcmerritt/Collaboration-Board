@@ -60,7 +60,7 @@ export default function Home() {
             colNum={col.id}
             cardCount={cardCount}
             onCardCountIncrease={increaseCardCount}
-            // might need to pass ws ref here as well
+            ws={ws.current}
           />
         )
       })
