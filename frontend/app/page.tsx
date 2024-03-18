@@ -14,6 +14,7 @@ export default function Home() {
   const [columns, setColumns] = useState([] as Column[])
   const colCountRef = useRef(1)
   const cardCountRef = useRef(1)
+  const conversationRef = useRef('default')
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -72,6 +73,7 @@ export default function Home() {
             cardCount={cardCountRef}
             colCount={colCountRef}
             ws={ws.current}
+            conversationRef={conversationRef}
           />
         )
       })
@@ -89,7 +91,7 @@ export default function Home() {
         {displayColumns()}
       </div>
 
-      <ChatPage ws={ws.current} />
+      <ChatPage ws={ws.current} conversationRef={conversationRef}/>
     </div>
   )
 }

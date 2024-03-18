@@ -1,8 +1,8 @@
 'use client'
 
-export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, conversationRef : any }) {
   function openChat() {
-    console.log(`Chat for id:${props.id} col:${props.col}`)
+    props.conversationRef.current = `${props.id}`
   }
 
   function moveCard(change : number) {

@@ -3,7 +3,7 @@
 import { useState, useEffect, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, cardCount : MutableRefObject<number>, colCount : MutableRefObject<number>, ws : WebSocket}) {
+export default function KanbanColumn(props : { colNum : any, cardCount : MutableRefObject<number>, colCount : MutableRefObject<number>, ws : WebSocket, conversationRef : any}) {
   type Card = {
     id : number,
     name: string,
@@ -68,7 +68,6 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
   function generateCardsForColumn(value : any) {
     const cardComponents : JSX.Element[] = []
 
-    console.log("here")
     // TODO: ws check or query to make sure we have all the cards
     props.ws.send(JSON.stringify({
       "ws_msg_type": "load cards",
@@ -88,6 +87,7 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
               col={props.colNum}
               ws={props.ws}
               colCount={props.colCount.current}
+              conversationRef={props.conversationRef}
             />
           )
         }
