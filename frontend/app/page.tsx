@@ -3,13 +3,14 @@
 import Image from "next/image"
 import { useState, useEffect, useRef } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
+import KanbanColumn from "./KanbanColumn.tsx"
 
 export default function Home() {
   // card hook?
-  const [card, setCard] = useState("")
+  const [col, setCol] = useState("")
 
-  function handleCardChange() {
-    console.log("Something changed with the card")
+  function handleColChange() {
+    console.log("Something changed with the column")
   }
 
   // END OF STATE STUFF
@@ -18,8 +19,6 @@ export default function Home() {
 
   function addColumn() {
     setColumns(c => c.concat("new"))
-
-    // console.log("adding: new length is " + columns.length)
   }
 
   function displayColumns() {
@@ -30,9 +29,9 @@ export default function Home() {
     if (columnsToDisplay) {
       columns?.forEach(col => {
         columnComponents.push(
-          <KanbanCard 
-            value={card}
-            onChange={handleCardChange}
+          <KanbanColumn 
+            value={"New Column"}
+            onChange={setCol}
           />
         )
       })
@@ -46,7 +45,7 @@ export default function Home() {
   return (
     <div id="content">
       <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
-      <button className="mx-2 ring-2 ring-gray-950" onClick={addColumn}>Add Column</button>
+      <button className="m-2 ring-2 ring-gray-950" onClick={addColumn}>Add Column</button>
 
       <div id="board" className="flex bg-blue-300">
         {displayColumns()}
