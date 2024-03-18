@@ -24,7 +24,7 @@ export default function Home() {
   const ws = useRef(null as unknown as WebSocket)
 
   // set up hook for users typing
-  const [usersTyping, setUsersTyping] = useState([] as string[])
+  const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
 
   // websocket connections
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function Home() {
     })
 
     socket.addEventListener("message", (e : MessageEvent) => {
-        const message : {ws_msg_type : string, message ?: string, user ?: string, conversation ?: string, typing ?: boolean, messages ?: ChatLogEntry[]} = JSON.parse(e.data)
+        const message : {ws_msg_type : string, message ?: string, user ?: string, conversation ?: string, typing ?: boolean, messages ?: ChatLogEntry[], users ?: string[]} = JSON.parse(e.data)
         
         if (message.ws_msg_type === 'chat message') {
           console.log(`Message received from server: ${message.message}`)
@@ -47,16 +47,8 @@ export default function Home() {
           }
         }
         else if (message.ws_msg_type === 'user typing') {
-          if (message.typing) {
-            console.log(`Received from server that ${message.user} is typing.`)
-            setUsersTyping(usersTyping.concat(message.user as string))
-          }
-          else {
-            console.log(`Received from server that ${message.user} is no longer typing.`)
-            if(usersTyping.indexOf(message.user as string) >= 0) {
-              setUsersTyping(usersTyping.filter((element) => message.user as string !== element))
-            }
-          }
+          setUsersTyping(message.users)
+          console.log(message.users)
         }
         else if (message.ws_msg_type === 'chat history') {
           setHistory(message.messages)
@@ -66,7 +58,7 @@ export default function Home() {
     ws.current = socket
 
     return () => socket.close()
-  }, [usersTyping])
+  }, [])
 
   // name hook
   const [name, setName] = useState("")
@@ -163,11 +155,13 @@ export default function Home() {
 
   function showTypingUsers() {
     const entryComponents : JSX.Element[] = []
-    if (usersTyping.length == 1) {
-      entryComponents.push(<p id="typing-indicator">{usersTyping[0] + " is typing..."}</p>)
-    }
-    else if (usersTyping.length > 1) {
-      entryComponents.push(<p id="typing-indicator">{usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."}</p>)
+    if (usersTyping) {
+      if (usersTyping.length == 1) {
+        entryComponents.push(<p id="typing-indicator">{usersTyping[0] + " is typing..."}</p>)
+      }
+      else if (usersTyping.length > 1) {
+        entryComponents.push(<p id="typing-indicator">{usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."}</p>)
+      }
     }
     return entryComponents
   }

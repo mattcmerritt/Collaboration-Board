@@ -45,21 +45,21 @@ function updateTypingUserList() {
     for (let i = 0; i < typing_users.length; i++) {
         // ensure that each user has sent a message in this time frame
         if (still_typing_users.find((element) => typing_users[i] === element) === undefined) {
+            // remove the user from the tracked user list
+            const removed_users = typing_users.splice(i, 1);
+            
             // the server needs to tell all the clients that this user is no longer talking
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
                         'ws_msg_type': 'user typing',
-                        'user': typing_users[i],
+                        'users': typing_users,
                         'typing': false
                     }))
                 } 
             })
 
-            console.log(`Typing:\t\tUser ${typing_users[i]} is no longer typing.`)
-
-            // remove the user from the tracked user list
-            typing_users.splice(i, 1);
+            console.log(`Typing:\t\tUser ${removed_users[0]} is no longer typing.`)
         }
     }
 
@@ -112,21 +112,22 @@ wss.on('connection', function connection(socket) {
         else if (data.ws_msg_type === 'user typing') {
             // if the user is not currently marked as typing
             if (typing_users.find((element) => element === data.user) === undefined) {
-                // indicating that a user is typing
+                // add user to lists in memory
+                typing_users.push(data.user)
+                // mark that the user is typing this frame
+                still_typing_users.push(data.user)
+                
+                // indicating that a user is typing on clients by sending new list
                 wss.clients.forEach(function each(client) {
                     if (client.readyState === ws.WebSocket.OPEN) {
                         client.send(JSON.stringify({
                             'ws_msg_type': 'user typing',
-                            'user': data.user,
+                            'users': typing_users,
                             'typing': true
                         }))
                     }
                 })
                 console.log(`Typing:\t\tReceived that ${data.user} is typing.`)
-
-                typing_users.push(data.user)
-                // mark that the user is typing this frame
-                still_typing_users.push(data.user)
             }
             else {
                 // mark that the user is typing this frame
