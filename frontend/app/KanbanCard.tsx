@@ -7,7 +7,7 @@ export default function KanbanCard(props : { value : any, onChange : any }) {
   
   return (
     <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id="kanbancard">
-      <input className="m-2 bg-blue-200" id="name-input" type="text" onChange={props.onChange} />
+      <textarea className="m-2 bg-blue-200 rounded-lg" id="name-input" onChange={props.onChange} />
       <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
     </div>
   )
