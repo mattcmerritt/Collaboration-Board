@@ -3,3 +3,8 @@
 @tailwind utilities;
 
 /* TODO: fill out when necessary */
+
+/* TODO: this should not be a permanent solution - we should design our own focus outline */
+*:focus {
+    outline: none;
+}
