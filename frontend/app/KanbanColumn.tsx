@@ -37,7 +37,7 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
       // if a card is renamed, update it
       else if (message.ws_msg_type === 'update card') {
         const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.id) as HTMLInputElement
-        nameInput.innerHTML = message.name
+        nameInput.value = message.name
       }
     })
   }, [props.ws])

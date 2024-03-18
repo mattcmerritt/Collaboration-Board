@@ -43,7 +43,7 @@ export default function Home() {
       // if a column is renamed, update it
       else if (message.ws_msg_type === 'update column') {
         const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column) as HTMLInputElement
-        input.innerHTML = message.name
+        input.value = message.name
       }
     })
 
