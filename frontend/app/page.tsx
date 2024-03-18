@@ -19,16 +19,11 @@ export default function Home() {
   // react state hooks
   const [history, setHistory] = useState([] as ChatLogEntry[] | undefined)
   const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
-  const [conversation, setConversation] = useState("")
   const [message, setMessage] = useState("")
   const [name, setName] = useState("")
 
-  // ref to allow checking conversation without dependency
-  // const conversationRef = useRef(conversation)
-  // useEffect(() => {
-  //   conversationRef.current = conversation
-  //   console.log('Conversation ref updated in effect')
-  // }, [conversation])
+  // react state refs (should not rerender)
+  const conversationRef = useRef('default')
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -54,19 +49,15 @@ export default function Home() {
       
       // if a message is received, add it to the message history
       if (message.ws_msg_type === 'chat message') {
-        // console.log('Chat message received: Conversation is ' + conversationRef.current)
-        // if (message.conversation == conversationRef.current) {
-        //   // would have set the history here
-        // }
-
-        // TODO: fix issue that adds messages to the wrong conversation
-        //  need to check if the conversation is the active one before adding the message
-        setHistory(h => h?.concat({
-          username: message.user,
-          message: message.message,
-          conversation: message.conversation,
-          time_sent: message.timestamp
-        } as ChatLogEntry))
+        // need to check if the conversation is the active one before adding the message
+        if (conversationRef.current == message.conversation) {
+          setHistory(h => h?.concat({
+            username: message.user,
+            message: message.message,
+            conversation: message.conversation,
+            time_sent: message.timestamp
+          } as ChatLogEntry))
+        }
       }
       // if a user is typing, add them to the list of typing users
       else if (message.ws_msg_type === 'user typing') {
@@ -105,7 +96,7 @@ export default function Home() {
     const conversationInput : HTMLInputElement | null = document.getElementById("conversation-input") as HTMLInputElement
 
     if (conversationInput !== null) {
-      setConversation(conversationInput.value.trim())
+      conversationRef.current = conversationInput.value.trim()
       // get new conversation logs
       ws.current.send(JSON.stringify({
         'ws_msg_type': 'chat history',
@@ -119,7 +110,7 @@ export default function Home() {
       "ws_msg_type": "chat message",
       "user": name === "" ? "Unnamed User" : name,
       "message": message === "" ? "No message content." : message,
-      "conversation": conversation === "" ? "default" : conversation
+      "conversation": conversationRef.current === "" ? "default" : conversationRef.current
     }))
   }
 
@@ -177,7 +168,7 @@ export default function Home() {
         onChange={handleMessageChange} 
       />
       <ConversationForm 
-        value={conversation} 
+        value={conversationRef.current} 
         onChange={handleConversationChange} 
       />
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
