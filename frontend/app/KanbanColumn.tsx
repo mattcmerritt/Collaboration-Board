@@ -23,7 +23,8 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
         ws_msg_type : string, 
         id : number,
         name : string,
-        column : number
+        column : number,
+        cards : any // TODO: find type
       } = JSON.parse(e.data)
       
       // if a card is added, render it
@@ -44,6 +45,11 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
         const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.id) as HTMLInputElement
         nameInput.value = message.name
       }
+      else if (message.ws_msg_type === 'load cards')
+      {
+        // setCards(message.columns)
+        console.log(message.cards)
+      }
     })
   }, [props.ws])
   
@@ -59,7 +65,12 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
   function generateCardsForColumn(value : any) {
     const cardComponents : JSX.Element[] = []
 
+    console.log("here")
     // TODO: ws check or query to make sure we have all the cards
+    props.ws.send(JSON.stringify({
+      "ws_msg_type": "load cards",
+      "column": props.colNum
+    }))
 
     if (cards) {
       cards?.forEach(card => {
