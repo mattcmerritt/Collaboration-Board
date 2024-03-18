@@ -5,7 +5,8 @@ import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
-import { useState, useEffect, useRef, MutableRefObject } from 'react'
+import { useState, useEffect, useContext } from 'react'
+import { ConversationContext } from "./ConversationContext.tsx"
 
 export default function ChatPage(props: { ws: WebSocket }) {
   // type for loading chat entries from database
@@ -29,7 +30,7 @@ export default function ChatPage(props: { ws: WebSocket }) {
   const [name, setName] = useState("")
 
   // react state refs (should not rerender)
-  const conversationRef = useRef('default')
+  const conversation = useContext(ConversationContext)
 
   useEffect(() => {
     // only add chat listeners if socket is prepared
@@ -51,7 +52,7 @@ export default function ChatPage(props: { ws: WebSocket }) {
       // if a message is received, add it to the message history
       if (message.ws_msg_type === 'chat message') {
         // need to check if the conversation is the active one before adding the message
-        if (conversationRef.current == message.conversation) {
+        if (conversation == message.conversation) {
           setHistory(h => h?.concat({
             username: message.user,
             message: message.message,
@@ -63,7 +64,7 @@ export default function ChatPage(props: { ws: WebSocket }) {
       // if a user is typing, add them to the list of typing users
       else if (message.ws_msg_type === 'user typing') {
         // filter out users not typing in the current conversation
-        const usersInConversation = message.users?.filter((user : UserDetails) => user.conversation === conversationRef.current)
+        const usersInConversation = message.users?.filter((user : UserDetails) => user.conversation === conversation)
         setUsersTyping(usersInConversation?.map((user : UserDetails) => user.name))
       }
       // if a request to replace the chat history is received, discard and replace history
@@ -91,25 +92,12 @@ export default function ChatPage(props: { ws: WebSocket }) {
     showTyping()
   }
 
-  function handleConversationChange() {
-    const conversationInput : HTMLInputElement | null = document.getElementById("conversation-input") as HTMLInputElement
-
-    if (conversationInput !== null) {
-      conversationRef.current = conversationInput.value.trim()
-      // get new conversation logs
-      props.ws.send(JSON.stringify({
-        'ws_msg_type': 'chat history',
-        'conversation': conversationInput.value.trim() === '' ? 'default' : conversationInput.value.trim()
-      }))
-    }
-  }
-
   function sendMessage() {
     props.ws.send(JSON.stringify({
       "ws_msg_type": "chat message",
       "user": name === "" ? "Unnamed User" : name,
       "message": message === "" ? "No message content." : message,
-      "conversation": conversationRef.current === "" ? "default" : conversationRef.current
+      "conversation": conversation === "" ? "default" : conversation
     }))
   }
 
@@ -117,7 +105,7 @@ export default function ChatPage(props: { ws: WebSocket }) {
     props.ws.send(JSON.stringify({
       "ws_msg_type": "user typing",
       "user": name === "" ? "Unnamed User" : name,
-      "conversation": conversationRef.current === "" ? "default" : conversationRef.current
+      "conversation": conversation === "" ? "default" : conversation
     }))
   }
 
@@ -165,10 +153,6 @@ export default function ChatPage(props: { ws: WebSocket }) {
       <MessageForm 
         value={message} 
         onChange={handleMessageChange} 
-      />
-      <ConversationForm 
-        value={conversationRef.current} 
-        onChange={handleConversationChange} 
       />
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       {generateLogs()} 

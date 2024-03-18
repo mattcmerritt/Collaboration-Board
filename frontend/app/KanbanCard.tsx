@@ -1,8 +1,14 @@
 'use client'
 
+import { useState } from "react"
+import { ConversationContext } from "./ConversationContext"
+
 export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any }) {
+  const [conversationName, setConversationName] = useState('default')
+  
   function openChat() {
     console.log(`Chat for id:${props.id} col:${props.col}`)
+    setConversationName(`${props.id}`)
   }
 
   function moveCard(change : number) {
@@ -49,7 +55,9 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   return (
     <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
       <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-      <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+      <ConversationContext.Provider value={conversationName}>
+        <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+      </ConversationContext.Provider>
       <div className="flex flex-row">
         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
