@@ -35,7 +35,7 @@ export default function KanbanColumn(props : { value : any, onChange : any }) {
 
   return (
     <div className="m-2 flex flex-col bg-blue-400" id="kanban-column">
-      <input className="m-1 ring-1 ring-gray-950" id="column-title" type="text" onChange={props.onChange} />
+      <input className="m-1 px-1 bg-blue-300 ring-2 ring-gray-500 rounded-lg" id="column-title" type="text" onChange={props.onChange} />
       {generateCardsForColumn(props.value)}
       <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
     </div>
