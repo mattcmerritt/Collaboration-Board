@@ -34,6 +34,10 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
       else if (message.ws_msg_type === 'move card') {
         setCards(c => c.concat({id:message.id, col:message.column}))
       }
+      // if a card is removed, filter it out
+      else if (message.ws_msg_type === 'remove card') {
+        setCards(c => c.filter((card) => card.id !== message.id || card.col !== message.column))
+      }
       // if a card is renamed, update it
       else if (message.ws_msg_type === 'update card') {
         const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.id) as HTMLInputElement

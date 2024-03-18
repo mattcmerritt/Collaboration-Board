@@ -12,12 +12,20 @@ export default function KanbanCard(props : { id : any, col : any, ws : WebSocket
       // fetch name of card
       const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + props.id) as HTMLInputElement
     
-      // send request
+      // send request to put in the new card
       props.ws.send(JSON.stringify({
         "ws_msg_type": "move card",
         "id": props.id,
         "name": nameInput.value.trim(),
         "column": props.col + change
+      }))
+
+      // send request to remove the old card
+      props.ws.send(JSON.stringify({
+        "ws_msg_type": "remove card",
+        "id": props.id,
+        "name": nameInput.value.trim(),
+        "column": props.col
       }))
     }
     else {

@@ -232,7 +232,20 @@ wss.on('connection', function connection(socket) {
                     }))
                 }
             })
-            console.log(`Cards:\t\Moved card ${data.id} with ${data.name} into column ${data.column}.`)
+            console.log(`Cards:\t\tMoved card ${data.id} with ${data.name} into column ${data.column}.`)
+        }
+        else if (data.ws_msg_type === 'remove card') {
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'remove card',
+                        'id': data.id,
+                        'name': data.name,
+                        'column': data.column
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tRemoved card ${data.id} with ${data.name} from column ${data.column}.`)
         }
         else if (data.ws_msg_type === 'load columns') {
             database_client.query("SELECT * FROM columns ORDER BY id").then((result) => {
