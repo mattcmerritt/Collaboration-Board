@@ -5,9 +5,9 @@ import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, MutableRefObject } from 'react'
 
-export default function ChatPage() {
+export default function ChatPage(props: { ws: WebSocket }) {
   // type for loading chat entries from database
   type ChatLogEntry = {
     username : string,
@@ -31,16 +31,11 @@ export default function ChatPage() {
   // react state refs (should not rerender)
   const conversationRef = useRef('default')
 
-  // set up the websocket as some sort of React Hook and Effect so other React Components can use it
-  const ws = useRef(null as unknown as WebSocket)
   useEffect(() => {
-    // if doing a demo for multiple machines, switch this to an IP address
-    const socket = new WebSocket("ws://localhost:8080")
-    socket.addEventListener("open", () => {
-      console.log("Connected to websocket server.")
-    })
+    // only add chat listeners if socket is prepared
+    if (!props.ws) return
 
-    socket.addEventListener("message", (e : MessageEvent) => {
+    props.ws.addEventListener("message", (e : MessageEvent) => {
       // parsing all the possible elements from the message data
       const message : {
         ws_msg_type : string, 
@@ -76,11 +71,7 @@ export default function ChatPage() {
         setHistory(message.messages)
       }
     })
-
-    ws.current = socket
-
-    return () => socket.close()
-  }, [])
+  }, [props.ws])
 
   function handleNameChange() {
     const nameInput : HTMLInputElement | null = document.getElementById("name-input") as HTMLInputElement
@@ -106,7 +97,7 @@ export default function ChatPage() {
     if (conversationInput !== null) {
       conversationRef.current = conversationInput.value.trim()
       // get new conversation logs
-      ws.current.send(JSON.stringify({
+      props.ws.send(JSON.stringify({
         'ws_msg_type': 'chat history',
         'conversation': conversationInput.value.trim() === '' ? 'default' : conversationInput.value.trim()
       }))
@@ -114,7 +105,7 @@ export default function ChatPage() {
   }
 
   function sendMessage() {
-    ws.current.send(JSON.stringify({
+    props.ws.send(JSON.stringify({
       "ws_msg_type": "chat message",
       "user": name === "" ? "Unnamed User" : name,
       "message": message === "" ? "No message content." : message,
@@ -123,7 +114,7 @@ export default function ChatPage() {
   }
 
   function showTyping() {
-    ws.current.send(JSON.stringify({
+    props.ws.send(JSON.stringify({
       "ws_msg_type": "user typing",
       "user": name === "" ? "Unnamed User" : name,
       "conversation": conversationRef.current === "" ? "default" : conversationRef.current

@@ -13,6 +13,20 @@ export default function Home() {
     console.log("Something changed with the column")
   }
 
+  // set up the websocket as some sort of React Hook and Effect so other React Components can use it
+  const ws = useRef(null as unknown as WebSocket)
+  useEffect(() => {
+    // if doing a demo for multiple machines, switch this to an IP address
+    const socket = new WebSocket("ws://localhost:8080")
+    socket.addEventListener("open", () => {
+      console.log("Connected to websocket server.")
+    })
+
+    ws.current = socket
+
+    return () => socket.close()
+  }, [])
+
   // END OF STATE STUFF
 
   const [columns, setColumns] = useState([] as string[])
@@ -51,7 +65,7 @@ export default function Home() {
         {displayColumns()}
       </div>
 
-      <ChatPage />
+      <ChatPage ws={ws.current} />
     </div>
   )
 }
