@@ -2,7 +2,7 @@
 
 export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any }) {
   function openChat() {
-    console.log("the chat has been opened")
+    console.log(`Chat for id:${props.id} col:${props.col}`)
   }
 
   function moveCard(change : number) {
