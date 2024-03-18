@@ -257,7 +257,7 @@ wss.on('connection', function connection(socket) {
             console.log(`Chat:\t\tSent previous columns.`)
         }
         else if (data.ws_msg_type === 'load cards') {
-            database_client.query("SELECT * FROM columns WHERE columnNumber=$1 ORDER BY id", [data.column]).then((result) => {
+            database_client.query("SELECT * FROM cards WHERE columnNumber=$1 ORDER BY id", [data.column]).then((result) => {
                 socket.send(JSON.stringify({
                     'ws_msg_type': 'load cards',
                     'cards': result.rows,
