@@ -44,6 +44,9 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
       else if (message.ws_msg_type === 'update card') {
         const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.id) as HTMLInputElement
         nameInput.value = message.name
+
+        // repopulating the cards
+        setCards(c => c.filter((card) => card.id !== message.id).concat({id:message.id, name:message.name, col:message.column}))
       }
       else if (message.ws_msg_type === 'load cards')
       {
