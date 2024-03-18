@@ -26,6 +26,27 @@ export default function Home() {
       console.log("Connected to websocket server.")
     })
 
+    socket.addEventListener("message", (e : MessageEvent) => {
+      // parsing all the possible elements from the message data
+      const message : {
+        ws_msg_type : string, 
+        id : number,
+        name : string,
+        column : number
+      } = JSON.parse(e.data)
+      
+      // if a column is added, render it
+      if (message.ws_msg_type === 'add column') {
+        setColumns(c => c.concat({id:colCount}))
+        increaseColCount()
+      }
+      // if a column is renamed, update it
+      else if (message.ws_msg_type === 'update column') {
+        const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column) as HTMLInputElement
+        input.innerHTML = message.name
+      }
+    })
+
     ws.current = socket
 
     return () => socket.close()
@@ -33,16 +54,18 @@ export default function Home() {
 
   // state variable for card id
   const [cardCount, setCardCount] = useState(1)
+  const [columns, setColumns] = useState([] as Column[])
 
   function increaseCardCount() {
     setCardCount(c => c + 1)
   }
 
-  const [columns, setColumns] = useState([] as Column[])
-
   function addColumn() {
-    setColumns(c => c.concat({id:colCount}))
-    increaseColCount()
+    ws.current.send(JSON.stringify({
+      "ws_msg_type": "add column",
+      "id": colCount,
+      "name": ""
+    }))
   }
 
   // END OF STATE STUFF
@@ -61,6 +84,7 @@ export default function Home() {
             cardCount={cardCount}
             onCardCountIncrease={increaseCardCount}
             ws={ws.current}
+            colCount={colCount}
           />
         )
       })
