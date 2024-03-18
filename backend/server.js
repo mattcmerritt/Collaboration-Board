@@ -28,7 +28,7 @@ const tables = [
     },
     {
         table: 'cards',
-        schema: 'id int, name varchar, column int'
+        schema: 'id int, name varchar, columnNumber int'
     }
 ]
 // checking for the tables
@@ -193,7 +193,7 @@ wss.on('connection', function connection(socket) {
             console.log(`Columns:\t\tUpdated column ${data.id} to now say ${data.name}.`)
         }
         else if (data.ws_msg_type === 'add card') {
-            database_client.query("INSERT INTO cards (id, name, column) VALUES ($1, $2, $3)", [data.id, data.name, data.column])
+            database_client.query("INSERT INTO cards (id, name, columnNumber) VALUES ($1, $2, $3)", [data.id, data.name, data.column])
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -221,7 +221,7 @@ wss.on('connection', function connection(socket) {
             console.log(`Cards:\t\tUpdated card ${data.id} to now say ${data.name} in column ${data.column}.`)
         }
         else if (data.ws_msg_type === 'move card') {
-            database_client.query("UPDATE cards SET column=$1 WHERE id=$2", [data.column, data.id])
+            database_client.query("UPDATE cards SET columnNumber=$1 WHERE id=$2", [data.column, data.id])
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -244,7 +244,7 @@ wss.on('connection', function connection(socket) {
             console.log(`Chat:\t\tSent previous columns.`)
         }
         else if (data.ws_msg_type === 'load cards') {
-            database_client.query("SELECT * FROM columns WHERE column=$1 ORDER BY id", [data.column]).then((result) => {
+            database_client.query("SELECT * FROM columns WHERE columnNumber=$1 ORDER BY id", [data.column]).then((result) => {
                 socket.send(JSON.stringify({
                     'ws_msg_type': 'load cards',
                     'cards': result.rows,
