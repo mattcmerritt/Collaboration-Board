@@ -16,7 +16,7 @@ export default function KanbanCard(props : { id : any, col : any, ws : WebSocket
       props.ws.send(JSON.stringify({
         "ws_msg_type": "move card",
         "id": props.id,
-        "name": nameInput.value.trim(),
+        "name": nameInput.value,
         "column": props.col + change
       }))
     }
@@ -33,7 +33,7 @@ export default function KanbanCard(props : { id : any, col : any, ws : WebSocket
     props.ws.send(JSON.stringify({
       "ws_msg_type": "update card",
       "id": props.id,
-      "name": nameInput.value.trim(),
+      "name": nameInput.value,
       "column": props.col
     }))
   }

@@ -83,7 +83,7 @@ export default function KanbanColumn(props : { colNum : any, cardCount : any, on
     props.ws.send(JSON.stringify({
       "ws_msg_type": "update column",
       "id": props.colNum,
-      "name": input.value.trim()
+      "name": input.value
     }))
   }
 
