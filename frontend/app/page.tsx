@@ -2,7 +2,6 @@
 
 import Image from "next/image"
 import { useState, useEffect, useRef } from 'react'
-import KanbanCard from "./KanbanCard.tsx"
 import KanbanColumn from "./KanbanColumn.tsx"
 
 export default function Home() {
