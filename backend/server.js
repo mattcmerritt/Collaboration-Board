@@ -23,12 +23,12 @@ const tables = [
         schema: 'username varchar, message varchar, conversation varchar, time_sent timestamp'
     },
     {
-        table: 'cards',
+        table: 'columns',
         schema: 'id int, name varchar'
     },
     {
-        table: 'columns',
-        schema: 'id int, name varchar'
+        table: 'cards',
+        schema: 'id int, name varchar, column int'
     }
 ]
 // checking for the tables
@@ -163,8 +163,11 @@ wss.on('connection', function connection(socket) {
             })
             console.log(`Chat:\t\tSent previous message log for ${data.conversation}.`)
         }
+        // ----------------- ----------------------------- -----------------
+        // ----------------- KANBAN FUNCTIONALITY MESSAGES -----------------
+        // ----------------- ----------------------------- -----------------
         else if (data.ws_msg_type === 'add column') {
-            database_client.query("INSERT INTO columns (id, name) VALUES ($1, $2) RETURNING *", [data.id, data.name])
+            database_client.query("INSERT INTO columns (id, name) VALUES ($1, $2)", [data.id, data.name])
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -177,23 +180,45 @@ wss.on('connection', function connection(socket) {
             console.log(`Columns:\t\tAdded column ${data.id}: ${data.name}.`)
         }
         else if (data.ws_msg_type === 'update column') {
-            // TODO: IMPLEMENT
-        }
-        else if (data.ws_msg_type === 'add card') {
-            database_client.query("INSERT INTO cards (id, name) VALUES ($1, $2) RETURNING *", [data.id, data.name])
+            database_client.query("UPDATE columns SET name=$1 WHERE id=$2", [data.name, data.id])
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
-                        'ws_msg_type': 'add card',
+                        'ws_msg_type': 'update column',
                         'id': data.id,
                         'name': data.name
                     }))
                 }
             })
-            console.log(`Cards:\t\tAdded card ${data.id}: ${data.name}.`)
+            console.log(`Columns:\t\tUpdated column ${data.id} to now say ${data.name}.`)
+        }
+        else if (data.ws_msg_type === 'add card') {
+            database_client.query("INSERT INTO cards (id, name, column) VALUES ($1, $2, $3)", [data.id, data.name, data.column])
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'add card',
+                        'id': data.id,
+                        'name': data.name,
+                        'column': data.column
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tAdded card ${data.id}: ${data.name} in ${data.column}.`)
         }
         else if (data.ws_msg_type === 'update card') {
-            // TODO: IMPLEMENT
+            database_client.query("UPDATE cards name=$1, column=$2 WHERE id=$3", [data.name, data.column, data.id])
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'ws_msg_type': 'add card',
+                        'id': data.id,
+                        'name': data.name,
+                        'column': data.column
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tUpdated card ${data.id} to now say ${data.name} in ${data.column}.`)
         }
     })
 
