@@ -14,7 +14,7 @@ export default function Home() {
   const [columns, setColumns] = useState([] as Column[])
   const colCountRef = useRef(1)
   const cardCountRef = useRef(1)
-  const conversationRef = useRef('default')
+  const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
@@ -53,7 +53,7 @@ export default function Home() {
   }, [])
 
   // chat modal JSX component
-  const chatPage = <ChatPage ws={ws.current} conversationRef={conversationRef} onCardHide={() => setCardActive(false)}/>
+  const chatPage = <ChatPage ws={ws.current} conversation={conversation} onCardHide={() => setCardActive(false)}/>
 
   function addColumn() {
     ws.current.send(JSON.stringify({
@@ -77,7 +77,7 @@ export default function Home() {
             cardCount={cardCountRef}
             colCount={colCountRef}
             ws={ws.current}
-            conversationRef={conversationRef}
+            setConversation={(value : string) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
           />
         )
