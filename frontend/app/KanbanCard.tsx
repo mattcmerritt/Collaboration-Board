@@ -51,36 +51,41 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   }
   
   function moveToHoveredColumn() {
+    
+
     const hoveredCol = 1 // TODO: should be state instead
     const destinationCol = document.getElementById("kanban-column-container-" + hoveredCol)
 
-    // const replacementCard = document.getElementById("kanban-card-" + props.id)
+    const replacementCard = document.getElementById("kanban-card-" + props.id)
     
-    const replacementCard : ReactElement = (
-      <Draggable
-        onStop={moveToHoveredColumn}
-      >
-        <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-          <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-          <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
-          <div className="flex flex-row">
-            <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
-            <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
-          </div>
-        </div>
-      </Draggable>
-    )
+    // const replacementCard : ReactElement = (
+    //   <Draggable
+    //     onStop={moveToHoveredColumn}
+    //   >
+    //     <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
+    //       <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
+    //       <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+    //       <div className="flex flex-row">
+    //         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
+    //         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
+    //       </div>
+    //     </div>
+    //   </Draggable>
+    // )
 
     if(destinationCol !== null && replacementCard !== null) {
-      // destinationCol?.appendChild(replacementCard)
+      destinationCol?.appendChild(replacementCard)
       // TODO: this messes up the displacement if redragged
-      // thisCard.style.transform = "initial" // set position to initial to put back in columns
+      replacementCard.style.transform = "initial" // set position to initial to put back in columns
     }
   }
 
   return (
     <Draggable
-      onStop={moveToHoveredColumn}
+      position={{x: 0, y: 0}}
+      onStop={() => {
+        moveToHoveredColumn()
+      }}
     >
       <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
         <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
