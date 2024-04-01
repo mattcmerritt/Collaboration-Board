@@ -165,21 +165,29 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
 
   return (
     // <div id="chat-window" onClick={props.onCardHide}> // TODO: implement something similar to hide chat
-    <div id="chat-window">
-      <h1>Chat: {props.conversation}</h1>
-      <NameForm 
-        value={name} 
-        onChange={handleNameChange} 
-      />
-      <MessageForm 
-        value={message} 
-        onChange={handleMessageChange} 
-      />
-
-      <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
-      {generateLogs()} 
-      <br/>
-      {showTypingUsers()}
+    <div id="chat-modal">
+      <div className="absolute inset-0 bg-gray-500 bg-opacity-75" id="chat-background" onClick={props.onCardHide}/>
+      
+      <div className="absolute inset-x-1/4 inset-y-0 z-10 p-5 bg-white rounded-lg overflow-y-auto" id="chat-window">
+        <h1>Chat: {props.conversation}</h1>
+        <NameForm 
+          value={name} 
+          onChange={handleNameChange} 
+        />
+        <MessageForm 
+          value={message} 
+          onChange={handleMessageChange} 
+        />
+        <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
+        {showTypingUsers()}
+        
+        <br/>
+        <br/>
+        <div className="p-5 bg-gray-200 rounded-lg">
+          <h1 className="pb-2.5">Chat Log:</h1>
+          {generateLogs()} 
+        </div>
+      </div>
     </div>
   )
 }
