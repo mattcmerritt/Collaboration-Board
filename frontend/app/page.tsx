@@ -57,20 +57,22 @@ export default function Home() {
       // if columns are loaded, show all
       else if (message.ws_msg_type === 'load columns') {
         const dbCols = message.columns
-        setColumns(dbCols)
-        setColumnCount(dbCols.length)
-
-        // TODO: runs too early for the columns to listen for it
-        //  current work around is a 1ms delay, but better solutions should be achievable
-        // load each column's cards too
-        setTimeout(() => {
-          for (const dbCol of dbCols) {
-            socket.send(JSON.stringify({
-              "ws_msg_type": "load cards",
-              "column": dbCol.id
-            }))
-          }
-        }, 1)
+        if (dbCols.length > 0) {
+          setColumns(dbCols)
+          setColumnCount(dbCols.length)
+  
+          // TODO: runs too early for the columns to listen for it
+          //  current work around is a 1ms delay, but better solutions should be achievable
+          // load each column's cards too
+          setTimeout(() => {
+            for (const dbCol of dbCols) {
+              socket.send(JSON.stringify({
+                "ws_msg_type": "load cards",
+                "column": dbCol.id
+              }))
+            }
+          }, 1)
+        }
       }
     })
 
@@ -100,6 +102,7 @@ export default function Home() {
       columns?.forEach(col => {
         columnComponents.push(
           <KanbanColumn 
+            key={col.id}
             colNum={col.id}
             colCount={columnCount}
             cardCount={cardCount}

@@ -11,6 +11,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   }
   
   const [cards, setCards] = useState([] as Card[])
+  const [name, setName] = useState(props.name as string)
 
   const wsListenerConfiguredRef = useRef(false)
   const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
@@ -115,6 +116,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
         if(card.columnnumber == props.colNum) {
           cardComponents.push(
             <KanbanCard 
+              key={card.id}
               id={card.id}
               name={card.name}
               col={props.colNum}
@@ -140,11 +142,13 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       "id": props.colNum,
       "name": input.value
     }))
+
+    setName(input.value)
   }
 
   return (
     <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum}>
-      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={props.name}/>
+      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={name}/>
       {generateCardsForColumn(props.colNum)}
       <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
     </div>
