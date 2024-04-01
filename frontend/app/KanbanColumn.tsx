@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any}) {
+export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, name : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any}) {
   type Card = {
     id : number,
     name: string,
-    col : number
+    columnnumber : number
   }
   
   const [cards, setCards] = useState([] as Card[])
@@ -30,6 +30,19 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       props.ws.removeEventListener("message", wsListenerRef.current)
     }
 
+    // TODO: determine why this is running later than expected
+    //  maybe ws.current only works when the socket is loaded, so this never calls?
+    //  also, calls to load cards cause permanent loading loops due to the 
+    //  dependency on increaseCardCount
+    /*
+    props.ws.addEventListener("open", () => {
+      props.ws.send(JSON.stringify({
+        "ws_msg_type": "load cards",
+        "column": props.colNum
+      }))
+    })
+    */
+
     // creating and attaching listener to websocket
     const messageListener : (this: WebSocket, ev: MessageEvent<any>) => any = (e : MessageEvent) => {
       // parsing all the possible elements from the message data
@@ -43,7 +56,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       
       // if a card is added, render it
       if (message.ws_msg_type === 'add card') {
-        setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
+        setCards(c => c.concat({id:message.id, name:message.name, columnnumber:message.column}))
         // only increment the card counter if this column contains the new card
         if (message.column === props.colNum) {
           incrementCardCount()
@@ -51,11 +64,11 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       }
       // if a card is added, render it
       else if (message.ws_msg_type === 'move card') {
-        setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
+        setCards(c => c.concat({id:message.id, name:message.name, columnnumber:message.column}))
       }
       // if a card is removed, filter it out
       else if (message.ws_msg_type === 'remove card') {
-        setCards(c => c.filter((card) => card.id !== message.id || card.col !== message.column))
+        setCards(c => c.filter((card) => card.id !== message.id || card.columnnumber !== message.column))
       }
       // if a card is renamed, update it
       else if (message.ws_msg_type === 'update card') {
@@ -63,13 +76,16 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
         nameInput.value = message.name
 
         // repopulating the cards
-        setCards(c => c.filter((card) => card.id !== message.id).concat({id:message.id, name:message.name, col:message.column}))
+        setCards(c => c.filter((card) => card.id !== message.id).concat({id:message.id, name:message.name, columnnumber:message.column}))
       }
       else if (message.ws_msg_type === 'load cards')
       {
-        // TODO: figure out what should be happening here?
-        // setCards(message.columns)
-        // console.log(message.cards)
+        if (message.column == props.colNum) {
+          setCards(message.cards)
+          for (let i = 0; i < message.cards.length; i++) {
+            incrementCardCount()
+          }
+        }
       }
     }
     props.ws.addEventListener("message", messageListener)
@@ -91,18 +107,12 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   function generateCardsForColumn(value : any) {
     const cardComponents : JSX.Element[] = []
 
-    // TODO: ws check or query to make sure we have all the cards
-    props.ws.send(JSON.stringify({
-      "ws_msg_type": "load cards",
-      "column": props.colNum
-    }))
-
     if (cards) {
       cards?.forEach(card => {
         // TODO: this if statement is very sloppy - ideally this should not be necessary
         // and cards that are no longer in this column should be cleared from the state
         // this is not the case though
-        if(card.col == props.colNum) {
+        if(card.columnnumber == props.colNum) {
           cardComponents.push(
             <KanbanCard 
               id={card.id}
@@ -134,7 +144,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
 
   return (
     <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum}>
-      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} />
+      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={props.name}/>
       {generateCardsForColumn(props.colNum)}
       <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
     </div>
