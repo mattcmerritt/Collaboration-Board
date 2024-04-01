@@ -136,6 +136,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
         entryComponents.push(
           <ChatLogEntry
             key = {entry.conversation + entry.username + entry.time_sent}
+            identifier = {entry.conversation + entry.username + entry.time_sent}
             username = {entry.username}
             message = {entry.message}
             conversation = {entry.conversation}
@@ -163,7 +164,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
   }
 
   return (
-    // <div id="chat-window" onClick={props.onCardHide}>
+    // <div id="chat-window" onClick={props.onCardHide}> // TODO: implement something similar to hide chat
     <div id="chat-window">
       <NameForm 
         value={name} 
