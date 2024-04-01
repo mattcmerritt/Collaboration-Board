@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, MutableRefObject } from 'react'
+import { useState, useEffect, useRef, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, cardCount : MutableRefObject<number>, colCount : MutableRefObject<number>, ws : WebSocket, setConversation : any, onCardActivate : any}) {
+export default function KanbanColumn(props : { colNum : any, colCount : MutableRefObject<number>, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any}) {
   type Card = {
     id : number,
     name: string,
@@ -12,12 +12,22 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
   
   const [cards, setCards] = useState([] as Card[])
 
+  const wsListenerConfiguredRef = useRef(false)
+  const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
+
   // ws updaters
   useEffect(() => {
     // only add chat listeners if socket is prepared
     if (!props.ws) return
 
-    props.ws.addEventListener("message", (e : MessageEvent) => {
+    // if reloading, remove existing listener and put on a new one with proper conversation
+    if (wsListenerConfiguredRef.current) {
+      wsListenerConfiguredRef.current = false
+      props.ws.removeEventListener("message", wsListenerRef.current)
+    }
+
+    // creating and attaching listener to websocket
+    const messageListener : (this: WebSocket, ev: MessageEvent<any>) => any = (e : MessageEvent) => {
       // parsing all the possible elements from the message data
       const message : {
         ws_msg_type : string, 
@@ -30,7 +40,11 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
       // if a card is added, render it
       if (message.ws_msg_type === 'add card') {
         setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
-        props.cardCount.current = props.cardCount.current + 1
+        // only increment the card counter if this column contains the new card
+        if (message.column === props.colNum) {
+          // TODO: this is causing the complier to throw warning, determine how to address this
+          props.incrementCardCount()
+        }
       }
       // if a card is added, render it
       else if (message.ws_msg_type === 'move card') {
@@ -50,16 +64,22 @@ export default function KanbanColumn(props : { colNum : any, cardCount : Mutable
       }
       else if (message.ws_msg_type === 'load cards')
       {
+        // TODO: figure out what should be happening here?
         // setCards(message.columns)
-        console.log(message.cards)
+        // console.log(message.cards)
       }
-    })
-  }, [props.ws])
+    }
+    props.ws.addEventListener("message", messageListener)
+
+    // storing the listener for updates later
+    wsListenerRef.current = messageListener
+    wsListenerConfiguredRef.current = true
+  }, [props.ws, props.incrementCardCount])
   
   function addCard() {
     props.ws.send(JSON.stringify({
       "ws_msg_type": "add card",
-      "id": props.cardCount.current,
+      "id": props.cardCount,
       "name": "",
       "column": props.colNum
     }))

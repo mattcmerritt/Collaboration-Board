@@ -13,7 +13,7 @@ export default function Home() {
   // state variables
   const [columns, setColumns] = useState([] as Column[])
   const colCountRef = useRef(1)
-  const cardCountRef = useRef(1)
+  const [cardCount, setCardCount] = useState(1)
   const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
 
@@ -74,9 +74,10 @@ export default function Home() {
         columnComponents.push(
           <KanbanColumn 
             colNum={col.id}
-            cardCount={cardCountRef}
             colCount={colCountRef}
+            cardCount={cardCount}
             ws={ws.current}
+            incrementCardCount={() => setCardCount(c => c + 1)}
             setConversation={(value : string) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
           />
