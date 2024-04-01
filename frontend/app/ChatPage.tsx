@@ -83,6 +83,13 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
     // storing the listener for updates later
     wsListenerRef.current = messageListener
     wsListenerConfiguredRef.current = true
+
+    // refresh history to reflect new conversation
+    props.ws.send(JSON.stringify({
+      'ws_msg_type': 'chat history',
+      'conversation': props.conversation
+    }))
+
   }, [props.ws, props.conversation])
 
   function handleNameChange() {
@@ -101,19 +108,6 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
     }
 
     showTyping()
-  }
-
-  function handleConversationChange() {
-    const conversationInput : HTMLInputElement | null = document.getElementById("conversation-input") as HTMLInputElement
-
-    if (conversationInput !== null) {
-      props.conversation = conversationInput.value.trim()
-      // get new conversation logs
-      props.ws.send(JSON.stringify({
-        'ws_msg_type': 'chat history',
-        'conversation': conversationInput.value.trim() === '' ? 'default' : conversationInput.value.trim()
-      }))
-    }
   }
 
   function sendMessage() {
