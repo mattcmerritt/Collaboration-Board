@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, colCount : MutableRefObject<number>, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any}) {
+export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any}) {
   type Card = {
     id : number,
     name: string,
@@ -109,7 +109,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : MutableR
               name={card.name}
               col={props.colNum}
               ws={props.ws}
-              colCount={props.colCount.current}
+              colCount={props.colCount}
               setConversation={props.setConversation}
               onCardActivate={props.onCardActivate}
               setActiveCardName={props.setActiveCardName}

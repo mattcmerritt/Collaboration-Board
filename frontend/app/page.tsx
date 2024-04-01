@@ -12,7 +12,7 @@ export default function Home() {
 
   // state variables
   const [columns, setColumns] = useState([] as Column[])
-  const colCountRef = useRef(1)
+  const [columnCount, setColumnCount] = useState(1)
   const [cardCount, setCardCount] = useState(1)
   const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
@@ -38,8 +38,8 @@ export default function Home() {
       
       // if a column is added, render it
       if (message.ws_msg_type === 'add column') {
-        setColumns(c => c.concat({id:colCountRef.current}))
-        colCountRef.current = colCountRef.current + 1
+        setColumns(c => c.concat({id : c.length + 1}))
+        setColumnCount(c => c + 1)
       }
       // if a column is renamed, update it
       else if (message.ws_msg_type === 'update column') {
@@ -59,7 +59,7 @@ export default function Home() {
   function addColumn() {
     ws.current.send(JSON.stringify({
       "ws_msg_type": "add column",
-      "id": colCountRef.current,
+      "id": columnCount,
       "name": ""
     }))
   }
@@ -75,7 +75,7 @@ export default function Home() {
         columnComponents.push(
           <KanbanColumn 
             colNum={col.id}
-            colCount={colCountRef}
+            colCount={columnCount}
             cardCount={cardCount}
             ws={ws.current}
             incrementCardCount={() => setCardCount(c => c + 1)}
