@@ -7,7 +7,7 @@ import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
 import { useState, useEffect, useRef, MutableRefObject } from 'react'
 
-export default function ChatPage(props: { ws: WebSocket, conversationRef : any }) {
+export default function ChatPage(props: { ws: WebSocket, conversationRef : any, onCardHide : any }) {
   // type for loading chat entries from database
   type ChatLogEntry = {
     username : string,
@@ -154,7 +154,7 @@ export default function ChatPage(props: { ws: WebSocket, conversationRef : any }
   }
 
   return (
-    <div id="content">
+    <div id="chat-window" onClick={props.onCardHide}>
       <NameForm 
         value={name} 
         onChange={handleNameChange} 
@@ -163,10 +163,7 @@ export default function ChatPage(props: { ws: WebSocket, conversationRef : any }
         value={message} 
         onChange={handleMessageChange} 
       />
-      {/* <ConversationForm 
-        value={props.conversationRef.current} 
-        onChange={handleConversationChange} 
-      /> */}
+
       <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
       {generateLogs()} 
       <br/>
