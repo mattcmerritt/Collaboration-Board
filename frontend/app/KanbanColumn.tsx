@@ -15,6 +15,10 @@ export default function KanbanColumn(props : { colNum : any, colCount : MutableR
   const wsListenerConfiguredRef = useRef(false)
   const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
 
+  // extracting callback function from props
+  // prevents warning on dependencies in websocket effect below
+  const incrementCardCount = props.incrementCardCount
+
   // ws updaters
   useEffect(() => {
     // only add chat listeners if socket is prepared
@@ -42,8 +46,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : MutableR
         setCards(c => c.concat({id:message.id, name:message.name, col:message.column}))
         // only increment the card counter if this column contains the new card
         if (message.column === props.colNum) {
-          // TODO: this is causing the complier to throw warning, determine how to address this
-          props.incrementCardCount()
+          incrementCardCount()
         }
       }
       // if a card is added, render it
@@ -74,7 +77,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : MutableR
     // storing the listener for updates later
     wsListenerRef.current = messageListener
     wsListenerConfiguredRef.current = true
-  }, [props.ws, props.incrementCardCount])
+  }, [props.ws, props.colNum, incrementCardCount])
   
   function addCard() {
     props.ws.send(JSON.stringify({
