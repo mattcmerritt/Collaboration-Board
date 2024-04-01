@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, MutableRefObject } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 
-export default function KanbanColumn(props : { colNum : any, colCount : MutableRefObject<number>, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any}) {
+export default function KanbanColumn(props : { colNum : any, colCount : MutableRefObject<number>, cardCount : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, onColumnHover : any, onColumnExit : any}) {
   type Card = {
     id : number,
     name: string,
@@ -135,11 +135,13 @@ export default function KanbanColumn(props : { colNum : any, colCount : MutableR
   function handleColumnHovered() {
     console.log("hovering col " + props.colNum)
     // likely set some state var here, that can be called in page to move around cards or in KanbanCard on release
+    props.onColumnHover()
   }
 
   function handleColumnExited() {
     console.log("leaving col " + props.colNum)
     // likely set some state var here, that can be called in page to move around cards or in KanbanCard on release
+    props.onColumnExit()
   }
 
   return (

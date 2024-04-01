@@ -16,6 +16,7 @@ export default function Home() {
   const [cardCount, setCardCount] = useState(1)
   const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
+  const [columnHovered, setColumnHovered] = useState(0)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -80,6 +81,8 @@ export default function Home() {
             incrementCardCount={() => setCardCount(c => c + 1)}
             setConversation={(value : string) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
+            onColumnHover={() => setColumnHovered(col.id)}
+            onColumnExit={() => setColumnHovered(0)}
           />
         )
       })
