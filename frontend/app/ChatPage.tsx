@@ -36,9 +36,9 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
     if (!props.ws) return
 
     // if reloading, remove existing listener and put on a new one with proper conversation
-    if (!wsListenerConfiguredRef.current) {
-      props.ws.removeEventListener("message", wsListenerRef.current)
+    if (wsListenerConfiguredRef.current) {
       wsListenerConfiguredRef.current = false
+      props.ws.removeEventListener("message", wsListenerRef.current)
     }
   
     // creating and attaching listener to websocket
