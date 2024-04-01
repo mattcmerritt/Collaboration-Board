@@ -7,7 +7,7 @@ import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
 import { useState, useEffect, useRef, MutableRefObject } from 'react'
 
-export default function ChatPage(props: { ws: WebSocket, conversation : any, onCardHide : any }) {
+export default function ChatPage(props: { ws: WebSocket, conversation : any, activeCardName : any, onCardHide : any }) {
   // type for loading chat entries from database
   type ChatLogEntry = {
     username : string,
@@ -169,7 +169,12 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
       <div className="absolute inset-0 bg-gray-500 bg-opacity-75" id="chat-background" onClick={props.onCardHide}/>
       
       <div className="absolute inset-x-1/4 inset-y-0 z-10 p-5 bg-white rounded-lg overflow-y-auto" id="chat-window">
-        <h1>Chat: {props.conversation}</h1>
+        <h1>{props.activeCardName}</h1>
+        <br/>
+
+        {/* content for cards should go here later, like checklists */}
+
+        <h1>Card / Conversation Number: #{props.conversation}</h1>
         <NameForm 
           value={name} 
           onChange={handleNameChange} 
