@@ -185,7 +185,7 @@ wss.on('connection', function connection(socket) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
                         'ws_msg_type': 'update column',
-                        'id': data.id,
+                        'column': data.id,
                         'name': data.name
                     }))
                 }

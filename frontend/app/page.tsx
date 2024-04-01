@@ -8,14 +8,16 @@ import ChatPage from "./ChatPage.tsx"
 export default function Home() {
   type Column = {
     id : number
+    name : string
   }
 
   // state variables
   const [columns, setColumns] = useState([] as Column[])
-  const colCountRef = useRef(1)
+  const [columnCount, setColumnCount] = useState(1)
   const [cardCount, setCardCount] = useState(1)
   const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
+  const [activeCardName, setActiveCardName] = useState('default')
   const [columnHovered, setColumnHovered] = useState(0)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
@@ -25,6 +27,11 @@ export default function Home() {
     const socket = new WebSocket("ws://localhost:8080")
     socket.addEventListener("open", () => {
       console.log("Connected to websocket server.")
+
+      // send request to load all the columns
+      ws.current.send(JSON.stringify({
+        "ws_msg_type": "load columns"
+      }))
     })
 
     socket.addEventListener("message", (e : MessageEvent) => {
@@ -33,18 +40,40 @@ export default function Home() {
         ws_msg_type : string, 
         id : number,
         name : string,
-        column : number
+        column : number,
+        columns : Column[]
       } = JSON.parse(e.data)
       
       // if a column is added, render it
       if (message.ws_msg_type === 'add column') {
-        setColumns(c => c.concat({id:colCountRef.current}))
-        colCountRef.current = colCountRef.current + 1
+        // TODO: change this to message.id instead of the length workaround
+        setColumns(c => c.concat({id : c.length + 1, name : message.name}))
+        setColumnCount(c => c + 1)
       }
       // if a column is renamed, update it
       else if (message.ws_msg_type === 'update column') {
         const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column) as HTMLInputElement
         input.value = message.name
+      }
+      // if columns are loaded, show all
+      else if (message.ws_msg_type === 'load columns') {
+        const dbCols = message.columns
+        if (dbCols.length > 0) {
+          setColumns(dbCols)
+          setColumnCount(dbCols.length)
+  
+          // TODO: runs too early for the columns to listen for it
+          //  current work around is a 1ms delay, but better solutions should be achievable
+          // load each column's cards too
+          setTimeout(() => {
+            for (const dbCol of dbCols) {
+              socket.send(JSON.stringify({
+                "ws_msg_type": "load cards",
+                "column": dbCol.id
+              }))
+            }
+          }, 1)
+        }
       }
     })
 
@@ -54,12 +83,12 @@ export default function Home() {
   }, [])
 
   // chat modal JSX component
-  const chatPage = <ChatPage ws={ws.current} conversation={conversation} onCardHide={() => setCardActive(false)}/>
+  const chatPage = <ChatPage ws={ws.current} conversation={conversation} activeCardName={activeCardName} onCardHide={() => setCardActive(false)}/>
 
   function addColumn() {
     ws.current.send(JSON.stringify({
       "ws_msg_type": "add column",
-      "id": colCountRef.current,
+      "id": columnCount,
       "name": ""
     }))
   }
@@ -74,13 +103,16 @@ export default function Home() {
       columns?.forEach(col => {
         columnComponents.push(
           <KanbanColumn 
+            key={col.id}
             colNum={col.id}
-            colCount={colCountRef}
+            colCount={columnCount}
             cardCount={cardCount}
+            name={col.name}
             ws={ws.current}
             incrementCardCount={() => setCardCount(c => c + 1)}
             setConversation={(value : string) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
+            setActiveCardName={(name : string) => setActiveCardName(name)}
             onColumnHover={() => setColumnHovered(col.id)}
             onColumnExit={() => setColumnHovered(0)}
           />
