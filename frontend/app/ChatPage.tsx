@@ -166,6 +166,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, onC
   return (
     // <div id="chat-window" onClick={props.onCardHide}> // TODO: implement something similar to hide chat
     <div id="chat-window">
+      <h1>Chat: {props.conversation}</h1>
       <NameForm 
         value={name} 
         onChange={handleNameChange} 
