@@ -3,7 +3,7 @@
 import { ReactElement } from 'react';
 import Draggable from 'react-draggable';
 
-export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, columnHovered : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
   function openChat() {
     props.setConversation(`${props.id}`)
     props.onCardActivate()
@@ -57,7 +57,7 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   function moveToHoveredColumn() {
     
 
-    const hoveredCol = 1 // TODO: should be state instead
+    const hoveredCol = props.columnHovered // TODO: should be state instead
     const destinationCol = document.getElementById("kanban-column-container-" + hoveredCol)
 
     const replacementCard = document.getElementById("kanban-card-" + props.id)

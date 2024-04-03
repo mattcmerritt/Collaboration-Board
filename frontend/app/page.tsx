@@ -108,6 +108,7 @@ export default function Home() {
             colCount={columnCount}
             cardCount={cardCount}
             name={col.name}
+            columnHovered={columnHovered}
             ws={ws.current}
             incrementCardCount={() => setCardCount(c => c + 1)}
             setConversation={(value : string) => setConversation(value)}
