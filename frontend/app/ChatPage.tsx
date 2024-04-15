@@ -72,6 +72,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
       else if (message.messageType === 'load card') {
         setHistory(message.card!.chatLog)
         setCardContent(message.card!.content)
+        setCardTasks(message.card!.checkList)
       }
     }
     props.ws.addEventListener("message", messageListener)
