@@ -128,12 +128,12 @@ export default function Home() {
 
   return (
     <div id="content">
-      <h1 className="flex bg-blue-500 items-center justify-center text-3xl">Collaboration Board</h1>
-      <button className="m-2 px-1 ring-2 ring-gray-950 rounded-lg" onClick={addColumn}>Add Column</button>
+      <h1 className="py-5 flex bg-blue-500 items-center justify-center text-3xl">Collaboration Board</h1>
 
       <DndProvider backend={HTML5Backend}>
         <div id="board" className="flex bg-blue-300">
           {displayColumns()}
+          <button className="m-2 px-1 flex-initial ring-2 bg-blue-400 rounded-lg" onClick={addColumn}>Add Column</button>
         </div>
       </DndProvider>
 
