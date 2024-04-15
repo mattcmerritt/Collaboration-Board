@@ -7,14 +7,12 @@ import { ItemTypes } from './ItemTypes.tsx'
 
 export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
   // drag stuff
-  const cardId : string = props.id; // TODO: try to not do this and actually use the one in props
-  
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.CARD,
     end: (item, monitor) => {
-      const dropResult : {col : any} | null = monitor.getDropResult()
+      const dropResult : {col : any} | null = monitor.getDropResult() // gives object { col : <column dropped into> }
       if (item && dropResult) {
-        console.log(`You dropped card ${cardId} into column ${dropResult.col}!`)
+        console.log(`You dropped card ${props.id} into column ${dropResult.col}!`)
         moveToHoveredColumn(dropResult.col)
       }
     },
@@ -76,9 +74,10 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   }
   
   function moveToHoveredColumn(hoveredCol : number) {
-    // const hoveredCol = 1 // TODO: should be state instead
+    // grab reference to column to move to
     const destinationCol = document.getElementById("kanban-column-container-" + hoveredCol)
 
+    // grab reference to card to move
     const replacementCard = document.getElementById("kanban-card-" + props.id)
     
     // const replacementCard : ReactElement = (
@@ -92,13 +91,9 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     //   </div>
     // )
 
-    console.log(`col: ${destinationCol}`)
-    console.log(`card: ${replacementCard}`)
+    // place card into column
     if(destinationCol !== null && replacementCard !== null) {
-      console.log(`here`)
       destinationCol?.appendChild(replacementCard)
-      // TODO: this messes up the displacement if redragged
-      // thisCard.style.transform = "initial" // set position to initial to put back in columns
     }
   }
 

@@ -29,7 +29,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       drop(_item, monitor) {
         const didDrop = monitor.didDrop()
         console.log(`drop on ${props.colNum}`)
-        return { col : props.colNum }
+        return { col : props.colNum } // for use in drag through monitor.getDropResult()
       },
       collect: (monitor) => ({
         isOver: monitor.isOver(),
