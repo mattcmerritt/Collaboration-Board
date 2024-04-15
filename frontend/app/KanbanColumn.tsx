@@ -154,12 +154,12 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   }
 
   return (
-    <div ref={drop} className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum}>
+    <div ref={drop} className="m-2 flex flex-col bg-blue-400 rounded-lg" id={"kanban-column-" + props.colNum}>
       <input className="m-1 px-1 bg-blue-300 rounded-lg placeholder-blue-800" id={"column-title-" + props.colNum} type="text" placeholder={`Column ${props.colNum}`} onChange={updateColumnName} value={name}/>
         <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-container-" + props.colNum}>
           {generateCardsForColumn(props.colNum)}
         </div>
-      <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
+      <button className="m-2 py-1 bg-blue-500 rounded-lg" onClick={addCard}>Add Card</button>
     </div>
   )
 }

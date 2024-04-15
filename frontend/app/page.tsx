@@ -128,8 +128,8 @@ export default function Home() {
 
   return (
     <div id="content">
-      <h1 className="bg-blue-500 content-center justify-self-center text-3xl">Collaboration Board</h1>
-      <button className="m-2 p-1 ring-2 ring-gray-950 rounded-lg" onClick={addColumn}>Add Column</button>
+      <h1 className="flex bg-blue-500 items-center justify-center text-3xl">Collaboration Board</h1>
+      <button className="m-2 px-1 ring-2 ring-gray-950 rounded-lg" onClick={addColumn}>Add Column</button>
 
       <DndProvider backend={HTML5Backend}>
         <div id="board" className="flex bg-blue-300">
