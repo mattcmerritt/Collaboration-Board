@@ -1,6 +1,5 @@
 'use client'
 
-import Draggable from 'react-draggable';
 import { useDrag } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.tsx'
 
@@ -23,7 +22,7 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   const opacity = isDragging ? 0.4 : 1
   
   function openChat() {
-    props.setConversation(`${props.id}`)
+    props.setConversation(props.id)
     props.onCardActivate()
 
     // TODO: redo all this name input stuff with states

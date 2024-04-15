@@ -1,29 +1,14 @@
 'use client'
 
-import Image from "next/image"
 import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
-import ConversationForm from './ChatConversationForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
-import { useState, useEffect, useRef, MutableRefObject } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { ChatMessage, Card, Column, TypingUser } from "./Types.ts"
 
 export default function ChatPage(props: { ws: WebSocket, conversation : any, activeCardName : any, onCardHide : any }) {
-  // type for loading chat entries from database
-  type ChatLogEntry = {
-    username : string,
-    message : string,
-    conversation : string,
-    time_sent : string
-  }
-
-  // type for loading users
-  type UserDetails = {
-    name: string,
-    conversation: string
-  }
-
   // react state hooks
-  const [history, setHistory] = useState([] as ChatLogEntry[] | undefined)
+  const [history, setHistory] = useState([] as ChatMessage[] | undefined)
   const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
   const [message, setMessage] = useState("")
   const [name, setName] = useState("")
@@ -45,37 +30,31 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
     const messageListener : (this: WebSocket, ev: MessageEvent<any>) => any = (e : MessageEvent) => {
       // parsing all the possible elements from the message data
       const message : {
-        ws_msg_type : string, 
-        message ?: string, 
-        user ?: string, 
-        conversation ?: string,
-        timestamp ?: string,
-        typing ?: boolean, 
-        messages ?: ChatLogEntry[], 
-        users ?: UserDetails[]
+        messageType : string, 
+        card? : Card
+        column? : Column
+        cards? : Card[]
+        columns? : Column[]
+        typingUsers? : TypingUser[]
+        isTyping? : boolean
       } = JSON.parse(e.data)
       
       // if a message is received, add it to the message history
-      if (message.ws_msg_type === 'chat message') {
+      if (message.messageType === 'update card chat') {
         // need to check if the conversation is the active one before adding the message
-        if (props.conversation == message.conversation) {
-          setHistory(h => h?.concat({
-            username: message.user,
-            message: message.message,
-            conversation: message.conversation,
-            time_sent: message.timestamp
-          } as ChatLogEntry))
+        if (props.conversation == message.card!.id) {
+          setHistory(message.card!.chatLog)
         }
       }
       // if a user is typing, add them to the list of typing users
-      else if (message.ws_msg_type === 'user typing') {
+      else if (message.messageType === 'user typing') {
         // filter out users not typing in the current conversation
-        const usersInConversation = message.users?.filter((user : UserDetails) => user.conversation === props.conversation)
-        setUsersTyping(usersInConversation?.map((user : UserDetails) => user.name))
+        const usersInConversation = message.typingUsers?.filter((user : TypingUser) => user.cardId === props.conversation)
+        setUsersTyping(usersInConversation?.map((user : TypingUser) => user.userName))
       }
       // if a request to replace the chat history is received, discard and replace history
-      else if (message.ws_msg_type === 'chat history') {
-        setHistory(message.messages)
+      else if (message.messageType === 'load card') {
+        setHistory(message.card!.chatLog)
       }
     }
     props.ws.addEventListener("message", messageListener)
@@ -86,8 +65,8 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
     // refresh history to reflect new conversation
     props.ws.send(JSON.stringify({
-      'ws_msg_type': 'chat history',
-      'conversation': props.conversation
+      'messageType': 'load card',
+      'cardId': props.conversation
     }))
 
   }, [props.ws, props.conversation])
@@ -112,34 +91,34 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
   function sendMessage() {
     props.ws.send(JSON.stringify({
-      "ws_msg_type": "chat message",
-      "user": name === "" ? "Unnamed User" : name,
+      "messageType": "update card chat",
+      "userName": name === "" ? "Unnamed User" : name,
       "message": message === "" ? "No message content." : message,
-      "conversation": props.conversation === "" ? "default" : props.conversation
+      "cardId": props.conversation
     }))
   }
 
   function showTyping() {
     props.ws.send(JSON.stringify({
-      "ws_msg_type": "user typing",
-      "user": name === "" ? "Unnamed User" : name,
-      "conversation": props.conversation === "" ? "default" : props.conversation
+      "messageType": "user typing",
+      "userName": name === "" ? "Unnamed User" : name,
+      "cardId": props.conversation
     }))
   }
 
   function generateLogs() {
     const entryComponents : JSX.Element[] = []
-    const entries : ChatLogEntry[] | undefined = history;
+    const entries : ChatMessage[] | undefined = history;
 
     if (entries) {
       entries.forEach(entry => {
         entryComponents.push(
           <ChatLogEntry
-            key = {entry.conversation + entry.username + entry.time_sent}
-            identifier = {entry.conversation + entry.username + entry.time_sent}
-            username = {entry.username}
+            key = {props.conversation + entry.name + entry.message}
+            identifier = {props.conversation + entry.name + entry.message}
+            username = {entry.name}
             message = {entry.message}
-            conversation = {entry.conversation}
+            conversation = {props.conversation}
           />
         )
       })

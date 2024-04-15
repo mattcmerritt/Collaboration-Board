@@ -12,7 +12,7 @@ export default function Home() {
   const [columns, setColumns] = useState([] as Column[])
   const [columnCount, setColumnCount] = useState(1)
   const [cardCount, setCardCount] = useState(1)
-  const [conversation, setConversation] = useState('default')
+  const [conversation, setConversation] = useState(0)
   const [cardActive, setCardActive] = useState(false)
   const [activeCardName, setActiveCardName] = useState('default')
 
@@ -106,7 +106,7 @@ export default function Home() {
             name={col.name}
             ws={ws.current}
             incrementCardCount={() => setCardCount(c => c + 1)}
-            setConversation={(value : string) => setConversation(value)}
+            setConversation={(value : number) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
             setActiveCardName={(name : string) => setActiveCardName(name)}
           />

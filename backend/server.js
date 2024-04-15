@@ -173,15 +173,23 @@ wss.on('connection', function connection(socket) {
                 'messageType': 'load columns',
                 'columns': columns
             }))
-            console.log(`Chat:\t\tSent previous columns.`)
+            console.log(`Loading:\t\tSent previous columns.`)
         }
         else if (data.messageType === 'load cards') {
-            const cards = await cardsCollection.find({ columnId : data.columnId })
+            const cards = await cardsCollection.find({ column : data.columnId })
             socket.send(JSON.stringify({
                 'messageType': 'load cards',
                 'cards': cards
             }))
-            console.log(`Chat:\t\tSent previous cards for column ${data.columnId}.`)
+            console.log(`Loading:\t\tSent previous cards for column ${data.columnId}.`)
+        }
+        else if (data.messageType === 'load card') {
+            const card = await cardsCollection.findOne({ id : data.cardId })
+            socket.send(JSON.stringify({
+                'messageType': 'load card',
+                'card': card
+            }))
+            console.log(`Loading:\t\tSent previous card ${data.cardId}.`)
         }
         // ----------------- Typing updates -----------------
         else if (data.messageType === 'user typing') {
