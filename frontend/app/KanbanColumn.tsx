@@ -23,33 +23,21 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   const incrementCardCount = props.incrementCardCount
 
   // drop stuff
-  const [hasDropped, setHasDropped] = useState(false)
-  const [hasDroppedOnChild, setHasDroppedOnChild] = useState(false)
   const [{ isOver, isOverCurrent }, drop] = useDrop(
     () => ({
       accept: ItemTypes.CARD,
       drop(_item, monitor) {
         const didDrop = monitor.didDrop()
-        // if (didDrop && !greedy) {
-        //   return
-        // }
-        setHasDropped(true)
-        setHasDroppedOnChild(didDrop)
-        console.log(`drop on ${props.colNum}`);
+        console.log(`drop on ${props.colNum}`)
+        return { col : props.colNum }
       },
       collect: (monitor) => ({
         isOver: monitor.isOver(),
         isOverCurrent: monitor.isOver({ shallow: true }),
       }),
     }),
-    [setHasDropped, setHasDroppedOnChild],
-    // [greedy, setHasDropped, setHasDroppedOnChild],
+    [],
   )
-  // const text = greedy ? 'greedy' : 'not greedy'
-  // let backgroundColor = 'rgba(0, 0, 0, .5)'
-  // if (isOverCurrent || (isOver && greedy)) {
-  //   backgroundColor = 'darkgreen'
-  // }
 
   // ws updaters
   useEffect(() => {

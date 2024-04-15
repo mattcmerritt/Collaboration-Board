@@ -12,10 +12,9 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.CARD,
     end: (item, monitor) => {
-      const dropResult = monitor.getDropResult()
+      const dropResult : {col : any} | null = monitor.getDropResult()
       if (item && dropResult) {
-        // alert(`You dropped ${item.name} into ${name}!`) // figure out what to do here to get colname and cardname here
-        console.log(`You dropped a card into a column!`)
+        console.log(`You dropped card ${cardId} into column ${dropResult.col}!`) // figure out what to do here to get colname and cardname here
       }
     },
     collect: (monitor) => ({
