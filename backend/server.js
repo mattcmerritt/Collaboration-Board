@@ -24,7 +24,7 @@ function updateTypingUserList() {
             
             // the server needs to tell all the clients that this user is no longer talking
             wss.clients.forEach(function each(client) {
-                if (client.readyState === WebSocket.OPEN) {
+                if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
                         'messageType': 'user typing',
                         'typingUsers': typingUsers,
@@ -65,7 +65,6 @@ wss.on('connection', function connection(socket) {
         if (data.messageType === 'add column') {
             const result = await columnsCollection.insertOne({ id : data.columnId, name : data.columnName })
             const newColumn = await columnsCollection.findOne({ _id : result.insertedId })
-            
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -81,8 +80,7 @@ wss.on('connection', function connection(socket) {
                 { id : data.columnId },
                 { $set : { name : data.columnName } }
             )
-            const newColumn = await columnsCollection.findOne({ _id : result.upsertedId })
-
+            const newColumn = await columnsCollection.findOne({ id : data.columnId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -113,7 +111,7 @@ wss.on('connection', function connection(socket) {
                 { id : data.cardId },
                 { $set : { name : data.cardName } }
             )
-            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -129,7 +127,7 @@ wss.on('connection', function connection(socket) {
                 { id : data.cardId },
                 { $set : { column : data.columnId } }
             )
-            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -147,7 +145,7 @@ wss.on('connection', function connection(socket) {
                 { id: data.cardId },
                 { $push : { chatLog : { name : data.userName, message : data.message } } }
             )
-            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
             // sending the message over to all active clients
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
@@ -164,7 +162,7 @@ wss.on('connection', function connection(socket) {
                 { id : data.cardId },
                 { $set : { content : data.cardContent } }
             )
-            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
