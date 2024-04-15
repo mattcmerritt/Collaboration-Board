@@ -3,10 +3,14 @@
 import { ReactElement } from 'react';
 import Draggable from 'react-draggable';
 
-export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
   function openChat() {
     props.setConversation(`${props.id}`)
     props.onCardActivate()
+
+    // TODO: redo all this name input stuff with states
+    const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + props.id) as HTMLInputElement
+    props.setActiveCardName(nameInput.value)
   }
 
   function moveCard(change : number) {
