@@ -10,7 +10,7 @@ const cardsCollection = databaseClient.db('board').collection('cards')
 const columnsCollection = databaseClient.db('board').collection('columns')
 
 // system for keeping track of what users are currently typing in the application
-// currently store objects of form: { userName: data.userName, cardId: data.cardId }
+// currently store objects of form: { userName: string, cardId: number }
 const typingUsers = []
 let stillTypingUsers = []
 

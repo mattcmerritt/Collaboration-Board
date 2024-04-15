@@ -1,16 +1,11 @@
 'use client'
 
-import Image from "next/image"
 import { useState, useEffect, useRef } from 'react'
 import KanbanColumn from "./KanbanColumn.tsx"
 import ChatPage from "./ChatPage.tsx"
+import { Card, Column, TypingUser } from "./Types.ts"
 
 export default function Home() {
-  type Column = {
-    id : number
-    name : string
-  }
-
   // state variables
   const [columns, setColumns] = useState([] as Column[])
   const [columnCount, setColumnCount] = useState(1)
@@ -30,46 +25,46 @@ export default function Home() {
 
       // send request to load all the columns
       ws.current.send(JSON.stringify({
-        "ws_msg_type": "load columns"
+        "messageType": "load columns"
       }))
     })
 
     socket.addEventListener("message", (e : MessageEvent) => {
       // parsing all the possible elements from the message data
       const message : {
-        ws_msg_type : string, 
-        id : number,
-        name : string,
-        column : number,
-        columns : Column[]
+        messageType : string, 
+        card? : Card
+        column? : Column
+        cards? : Card[]
+        columns? : Column[]
+        typingUsers? : TypingUser[]
+        isTyping? : boolean
       } = JSON.parse(e.data)
       
       // if a column is added, render it
-      if (message.ws_msg_type === 'add column') {
-        // TODO: change this to message.id instead of the length workaround
-        setColumns(c => c.concat({id : c.length + 1, name : message.name}))
+      if (message.messageType === 'add column') {
+        setColumns(c => c.concat(message.column!))
         setColumnCount(c => c + 1)
       }
       // if a column is renamed, update it
-      else if (message.ws_msg_type === 'update column') {
+      else if (message.messageType === 'update column') {
         const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column) as HTMLInputElement
-        input.value = message.name
+        input.value = message.column!.name
       }
       // if columns are loaded, show all
-      else if (message.ws_msg_type === 'load columns') {
-        const dbCols = message.columns
-        if (dbCols.length > 0) {
-          setColumns(dbCols)
-          setColumnCount(dbCols.length)
+      else if (message.messageType === 'load columns') {
+        if (message.columns!.length > 0) {
+          setColumns(message.columns!)
+          setColumnCount(message.columns!.length)
   
           // TODO: runs too early for the columns to listen for it
           //  current work around is a 1ms delay, but better solutions should be achievable
           // load each column's cards too
           setTimeout(() => {
-            for (const dbCol of dbCols) {
+            for (const col of message.columns!) {
               socket.send(JSON.stringify({
-                "ws_msg_type": "load cards",
-                "column": dbCol.id
+                "messageType": "load cards",
+                "columnId": col.id
               }))
             }
           }, 1)
@@ -87,9 +82,9 @@ export default function Home() {
 
   function addColumn() {
     ws.current.send(JSON.stringify({
-      "ws_msg_type": "add column",
-      "id": columnCount,
-      "name": ""
+      "messageType": "add column",
+      "columnId": columnCount,
+      "columnName": "New Column"
     }))
   }
 

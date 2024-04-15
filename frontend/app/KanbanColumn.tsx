@@ -1,15 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef, MutableRefObject } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
+import { Card, Column, TypingUser } from "./Types.ts"
 
 export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, name : any, columnHovered : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any, onColumnHover : any, onColumnExit : any }) {
-  type Card = {
-    id : number,
-    name: string,
-    columnnumber : number
-  }
-  
+  // state variables
   const [cards, setCards] = useState([] as Card[])
   const [name, setName] = useState(props.name as string)
 
@@ -31,59 +27,51 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       props.ws.removeEventListener("message", wsListenerRef.current)
     }
 
-    // TODO: determine why this is running later than expected
-    //  maybe ws.current only works when the socket is loaded, so this never calls?
-    //  also, calls to load cards cause permanent loading loops due to the 
-    //  dependency on increaseCardCount
-    /*
-    props.ws.addEventListener("open", () => {
-      props.ws.send(JSON.stringify({
-        "ws_msg_type": "load cards",
-        "column": props.colNum
-      }))
-    })
-    */
-
     // creating and attaching listener to websocket
     const messageListener : (this: WebSocket, ev: MessageEvent<any>) => any = (e : MessageEvent) => {
       // parsing all the possible elements from the message data
       const message : {
-        ws_msg_type : string, 
-        id : number,
-        name : string,
-        column : number,
-        cards : any // TODO: find type
+        messageType : string, 
+        card? : Card
+        column? : Column
+        cards? : Card[]
+        columns? : Column[]
+        typingUsers? : TypingUser[]
+        isTyping? : boolean
       } = JSON.parse(e.data)
       
       // if a card is added, render it
-      if (message.ws_msg_type === 'add card') {
-        setCards(c => c.concat({id:message.id, name:message.name, columnnumber:message.column}))
-        // only increment the card counter if this column contains the new card
-        if (message.column === props.colNum) {
+      if (message.messageType === 'add card') {
+        // only add card and increment the card counter if this column contains the new card
+        if (message.card!.column === props.colNum) {
+          setCards(c => c.concat(message.card!))
           incrementCardCount()
         }
       }
-      // if a card is added, render it
-      else if (message.ws_msg_type === 'move card') {
-        setCards(c => c.concat({id:message.id, name:message.name, columnnumber:message.column}))
-      }
-      // if a card is removed, filter it out
-      else if (message.ws_msg_type === 'remove card') {
-        setCards(c => c.filter((card) => card.id !== message.id || card.columnnumber !== message.column))
-      }
       // if a card is renamed, update it
-      else if (message.ws_msg_type === 'update card') {
-        const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.id) as HTMLInputElement
-        nameInput.value = message.name
+      else if (message.messageType === 'update card name') {
+        const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + message.card!.id) as HTMLInputElement
+        nameInput.value = message.card!.name
 
         // repopulating the cards
-        setCards(c => c.filter((card) => card.id !== message.id).concat({id:message.id, name:message.name, columnnumber:message.column}))
+        setCards(c => c.filter((card) => card.id !== message.card!.id).concat(message.card!))
       }
-      else if (message.ws_msg_type === 'load cards')
+      // if a card is moved, remove it if it was in this column, or add it if it wasn't and should be
+      else if (message.messageType === 'update card column') {
+        // removing the card if it was in the column and should not be
+        if (message.card!.column !== props.colNum) {
+          setCards(c => c.filter((card) => card.id !== message.card!.id))
+        }
+        // otherwise, add the card to the column
+        else {
+          setCards(c => c.concat(message.card!))
+        }
+      }
+      else if (message.messageType === 'load cards')
       {
-        if (message.column == props.colNum) {
-          setCards(message.cards)
-          for (let i = 0; i < message.cards.length; i++) {
+        if (message.cards!.length > 0 && message.cards![0].column == props.colNum) {
+          setCards(message.cards!)
+          for (let i = 0; i < message.cards!.length; i++) {
             incrementCardCount()
           }
         }
@@ -98,10 +86,10 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   
   function addCard() {
     props.ws.send(JSON.stringify({
-      "ws_msg_type": "add card",
-      "id": props.cardCount,
-      "name": "",
-      "column": props.colNum
+      "messageType": "add card",
+      "cardId": props.cardCount,
+      "cardName": "New Card",
+      "columnId": props.colNum
     }))
   }
 
@@ -113,7 +101,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
         // TODO: this if statement is very sloppy - ideally this should not be necessary
         // and cards that are no longer in this column should be cleared from the state
         // this is not the case though
-        if(card.columnnumber == props.colNum) {
+        if(card.column == props.colNum) {
           cardComponents.push(
             <KanbanCard 
               key={card.id}
@@ -139,9 +127,9 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
     const input : HTMLInputElement | null = document.getElementById("column-title-" + props.colNum) as HTMLInputElement
     
     props.ws.send(JSON.stringify({
-      "ws_msg_type": "update column",
-      "id": props.colNum,
-      "name": input.value
+      "messageType": "update column",
+      "columnId": props.colNum,
+      "columnName": input.value
     }))
 
     setName(input.value)
