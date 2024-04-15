@@ -173,6 +173,38 @@ wss.on('connection', function connection(socket) {
             })
             console.log(`Cards:\t\tUpdated card ${data.cardId} to now contain ${data.cardContent}.`)
         }
+        else if (data.messageType === 'add card task') {
+            const result = await cardsCollection.updateOne(
+                { id : data.cardId },
+                { $push : { checkList : { content : "", completed : false } } }
+            )
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'messageType': 'add card task',
+                        'card': newCard
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tUpdated card ${data.cardId} to now have new task.`)
+        }
+        else if (data.messageType === 'update card task') {
+            const result = await cardsCollection.updateOne(
+                { id : data.cardId },
+                { $set : { [`checkList.${data.taskIndex}`] : { content : data.taskContent, completed : data.taskCompletion } } }
+            )
+            const newCard = await cardsCollection.findOne({ id : data.cardId })
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'messageType': 'add card task',
+                        'card': newCard
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tUpdated card ${data.cardId}'s task[${data.taskIndex}] to be ${data.taskCompletion} with description ${data.taskContent}.`)
+        }
         // ----------------- Loading -----------------
         else if (data.messageType === 'load columns') {
             const cursor = await columnsCollection.find()

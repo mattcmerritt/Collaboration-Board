@@ -3,8 +3,9 @@
 import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
+import CheckListEntry from './CheckListEntry.tsx'
 import { useState, useEffect, useRef } from 'react'
-import { ChatMessage, Card, Column, TypingUser } from "./Types.ts"
+import { ChatMessage, Card, Column, TypingUser, ChecklistItem } from "./Types.ts"
 
 export default function ChatPage(props: { ws: WebSocket, conversation : any, activeCardName : any, onCardHide : any }) {
   // react state hooks
@@ -13,6 +14,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
   const [message, setMessage] = useState("")
   const [name, setName] = useState("")
   const [cardContent, setCardContent] = useState("")
+  const [cardTasks, setCardTasks] = useState([] as ChecklistItem[] | undefined)
 
   const wsListenerConfiguredRef = useRef(false)
   const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
@@ -59,6 +61,12 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         // filter out users not typing in the current conversation
         const usersInConversation = message.typingUsers?.filter((user : TypingUser) => user.cardId === props.conversation)
         setUsersTyping(usersInConversation?.map((user : TypingUser) => user.userName))
+      }
+      // if a task is added, add a new task entry to the list
+      else if (message.messageType === 'add card task' || message.messageType === 'update card task') {
+        if (props.conversation == message.card!.id) {
+          setCardTasks(message.card!.checkList)
+        }
       }
       // if a request to replace the chat history is received, discard and replace history
       else if (message.messageType === 'load card') {
@@ -123,6 +131,13 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
     }))
   }
 
+  function addTask() {
+    props.ws.send(JSON.stringify({
+      "messageType": "add card task",
+      "cardId" : props.conversation,
+    }))
+  }
+
   function generateLogs() {
     const entryComponents : JSX.Element[] = []
     const entries : ChatMessage[] | undefined = history;
@@ -159,6 +174,31 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
     return
   }
 
+  function generateTaskList() {
+    const entryComponents : JSX.Element[] = []
+    const tasks : ChecklistItem[] | undefined = cardTasks;
+
+    if (tasks) {
+      let count = 0
+      for (const task of tasks) {
+        entryComponents.push(
+          <CheckListEntry
+            key = {count}
+            ws = {props.ws}
+            identifier = {`${count}`}
+            completed = {task.completed}
+            content = {task.content}
+            index = {count}
+            cardId = {props.conversation}
+          />
+        )
+        count++
+      }
+    }
+    
+    return entryComponents
+  }
+
   return (
     // <div id="chat-window" onClick={props.onCardHide}> // TODO: implement something similar to hide chat
     <div id="chat-modal">
@@ -168,13 +208,18 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <h1>{props.activeCardName}</h1>
         <br/>
 
-        {/* content for cards should go here later, like checklists */}
-
         <h2 className="text-red-700">INTERNAL IDENTIFIER: Card #{props.conversation}</h2>
         <br />
 
         <h2 className="pb-2.5">Card Contents:</h2>
         <textarea className="w-full h-1/3 bg-gray-200 p-5 rounded-lg" onChange={(e) => updateCardContent(e.target.value)} value={cardContent}></textarea>
+
+        <br />
+        <br />
+
+        <h2 className="pb-2.5">Check List:</h2>
+        <button className="mx-2 ring-2 ring-gray-950" onClick={addTask}>Add Task</button>
+        {generateTaskList()}
 
         <br />
         <br />
@@ -194,7 +239,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <br/>
         <br/>
         <br/>
-        
+
         <h2 className="pb-2.5">Chat Log:</h2>
         <div className="p-5 bg-gray-200 rounded-lg">
           {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
