@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import KanbanCard from "./KanbanCard.tsx"
 import { Card, Column, TypingUser } from "./Types.ts"
+import { useDrop } from 'react-dnd'
+import { ItemTypes } from './ItemTypes.tsx'
 
-export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, name : any, columnHovered : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any, onColumnHover : any, onColumnExit : any }) {
+export default function KanbanColumn(props : { colNum : any, colCount : any, cardCount : any, name : any, ws : WebSocket, incrementCardCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any}) {
   // state variables
   const [cards, setCards] = useState([] as Card[])
   const [name, setName] = useState(props.name as string)
@@ -15,6 +17,23 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   // extracting callback function from props
   // prevents warning on dependencies in websocket effect below
   const incrementCardCount = props.incrementCardCount
+
+  // drop stuff
+  const [{ isOver, isOverCurrent }, drop] = useDrop(
+    () => ({
+      accept: ItemTypes.CARD,
+      drop(_item, monitor) {
+        const didDrop = monitor.didDrop()
+        console.log(`drop on ${props.colNum}`)
+        return { col : props.colNum } // for use in drag through monitor.getDropResult()
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        isOverCurrent: monitor.isOver({ shallow: true }),
+      }),
+    }),
+    [],
+  )
 
   // ws updaters
   useEffect(() => {
@@ -108,7 +127,6 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
               id={card.id}
               name={card.name}
               col={props.colNum}
-              columnHovered={props.columnHovered}
               ws={props.ws}
               colCount={props.colCount}
               setConversation={props.setConversation}
@@ -135,25 +153,12 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
     setName(input.value)
   }
 
-  // hover functionality
-  function handleColumnHovered() {
-    console.log("hovering col " + props.colNum)
-    // likely set some state var here, that can be called in page to move around cards or in KanbanCard on release
-    props.onColumnHover()
-  }
-
-  function handleColumnExited() {
-    console.log("leaving col " + props.colNum)
-    // likely set some state var here, that can be called in page to move around cards or in KanbanCard on release
-    props.onColumnExit()
-  }
-
   return (
-    <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum} onMouseEnter={handleColumnHovered} onMouseLeave={handleColumnExited}>
-      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={name} />
-      <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-container-" + props.colNum}>
-        {generateCardsForColumn(props.colNum)}
-      </div>
+    <div ref={drop} className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum}>
+      <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={name}/>
+        <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-container-" + props.colNum}>
+          {generateCardsForColumn(props.colNum)}
+        </div>
       <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
     </div>
   )

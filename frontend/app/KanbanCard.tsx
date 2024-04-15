@@ -1,8 +1,27 @@
 'use client'
 
 import Draggable from 'react-draggable';
+import { useDrag } from 'react-dnd'
+import { ItemTypes } from './ItemTypes.tsx'
 
-export default function KanbanCard(props : { id : any, name : string, col : any, columnHovered : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
+  // drag stuff
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.CARD,
+    end: (item, monitor) => {
+      const dropResult : {col : any} | null = monitor.getDropResult() // gives object { col : <column dropped into> }
+      if (item && dropResult) {
+        console.log(`You dropped card ${props.id} into column ${dropResult.col}!`)
+        moveToHoveredColumn(dropResult.col)
+      }
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+      handlerId: monitor.getHandlerId(),
+    }),
+  }))
+  const opacity = isDragging ? 0.4 : 1
+  
   function openChat() {
     props.setConversation(`${props.id}`)
     props.onCardActivate()
@@ -12,20 +31,13 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     props.setActiveCardName(nameInput.value)
   }
 
-  function moveCard(change : number) {
-    // check to see if move is valid first
-    if((props.col + change) > 0 && (props.col + change) < props.colCount)
-    {
-      // send request to put in the new card
-      props.ws.send(JSON.stringify({
-        "messageType": "update card column",
-        "cardId": props.id,
-        "columnId": props.col + change
-      }))
-    }
-    else {
-      console.log("bounds exception on moving card " + props.id + " from " + props.col + " to " + (props.col + change))
-    }
+  function moveCardRequest(newCol : number) {
+    // send request to put in the new card
+    props.ws.send(JSON.stringify({
+      "messageType": "update card column",
+      "cardId": props.id,
+      "columnId": newCol
+    }))
   }
 
   function updateCardText() {
@@ -40,50 +52,29 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     }))
   }
   
-  function moveToHoveredColumn() {
-    const hoveredCol = props.columnHovered // TODO: should be state instead
+  function moveToHoveredColumn(hoveredCol : number) {
+    // grab reference to column to move to
     const destinationCol = document.getElementById("kanban-column-container-" + hoveredCol)
 
+    // grab reference to card to move
     const replacementCard = document.getElementById("kanban-card-" + props.id)
     
-    // const replacementCard : ReactElement = (
-    //   <Draggable
-    //     onStop={moveToHoveredColumn}
-    //   >
-    //     <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-    //       <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-    //       <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
-    //       <div className="flex flex-row">
-    //         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
-    //         <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
-    //       </div>
-    //     </div>
-    //   </Draggable>
-    // )
-
+    // place card into column
     if(destinationCol !== null && replacementCard !== null) {
-      destinationCol?.appendChild(replacementCard)
-      // TODO: this messes up the displacement if redragged
-      replacementCard.style.transform = "initial" // set position to initial to put back in columns
+      if(hoveredCol !== props.col)
+      {
+        moveCardRequest(hoveredCol)
+      }
+      // destinationCol?.appendChild(replacementCard)
     }
   }
 
   return (
-    <Draggable
-      position={{x: 0, y: 0}}
-      onStop={() => {
-        moveToHoveredColumn()
-      }}
-    >
-      <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-        <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-        <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
-        <div className="flex flex-row">
-          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
-          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
-        </div>
+    <div ref={drag} className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
+      <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
+      <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+      <div className="flex flex-row">
       </div>
-    </Draggable>
-    
+    </div>
   )
 }

@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import KanbanColumn from "./KanbanColumn.tsx"
 import ChatPage from "./ChatPage.tsx"
 import { Card, Column, TypingUser } from "./Types.ts"
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 
 export default function Home() {
   // state variables
@@ -13,7 +15,6 @@ export default function Home() {
   const [conversation, setConversation] = useState('default')
   const [cardActive, setCardActive] = useState(false)
   const [activeCardName, setActiveCardName] = useState('default')
-  const [columnHovered, setColumnHovered] = useState(0)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -103,14 +104,11 @@ export default function Home() {
             colCount={columnCount}
             cardCount={cardCount}
             name={col.name}
-            columnHovered={columnHovered}
             ws={ws.current}
             incrementCardCount={() => setCardCount(c => c + 1)}
             setConversation={(value : string) => setConversation(value)}
             onCardActivate={() => setCardActive(true)}
             setActiveCardName={(name : string) => setActiveCardName(name)}
-            onColumnHover={() => setColumnHovered(col.id)}
-            onColumnExit={() => setColumnHovered(0)}
           />
         )
       })
@@ -133,9 +131,11 @@ export default function Home() {
       <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
       <button className="m-2 ring-2 ring-gray-950" onClick={addColumn}>Add Column</button>
 
-      <div id="board" className="flex bg-blue-300">
-        {displayColumns()}
-      </div>
+      <DndProvider backend={HTML5Backend}>
+        <div id="board" className="flex bg-blue-300">
+          {displayColumns()}
+        </div>
+      </DndProvider>
 
       {displayCardModal()}
     </div>
