@@ -168,7 +168,9 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   return (
     <div ref={drop} className="m-2 flex flex-col bg-blue-400" id={"kanban-column-" + props.colNum}>
       <input className="m-1 px-1 bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"column-title-" + props.colNum} type="text" onChange={updateColumnName} value={name}/>
-      {generateCardsForColumn(props.colNum)}
+        <div className="m-2 flex flex-col bg-blue-400" id={"kanban-column-container-" + props.colNum}>
+          {generateCardsForColumn(props.colNum)}
+        </div>
       <button className="m-1 ring-2 ring-gray-950" onClick={addCard}>Add Card</button>
     </div>
   )
