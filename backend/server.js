@@ -63,7 +63,9 @@ wss.on('connection', function connection(socket) {
 
         // ----------------- Columns -----------------
         if (data.messageType === 'add column') {
-            const newColumn = await columnsCollection.insertOne({ id : data.columnId, name : data.columnName })
+            const result = await columnsCollection.insertOne({ id : data.columnId, name : data.columnName })
+            const newColumn = await columnsCollection.findOne({ _id : result.insertedId })
+            
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -72,13 +74,15 @@ wss.on('connection', function connection(socket) {
                     }))
                 }
             })
-            console.log(`Columns:\t\tAdded column ${data.columnId}: ${data.columnName}.`)
+            console.log(`Columns:\tAdded column ${data.columnId}: ${data.columnName}.`)
         }
         else if (data.messageType === 'update column') {
-            const newColumn = await columnsCollection.updateOne( 
+            const result = await columnsCollection.updateOne( 
                 { id : data.columnId },
                 { $set : { name : data.columnName } }
             )
+            const newColumn = await columnsCollection.findOne({ _id : result.upsertedId })
+
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -87,12 +91,13 @@ wss.on('connection', function connection(socket) {
                     }))
                 }
             })
-            console.log(`Columns:\t\tUpdated column ${data.columnId} to now say ${data.columnName}.`)
+            console.log(`Columns:\tUpdated column ${data.columnId} to now say ${data.columnName}.`)
         }
         // ----------------- Cards -----------------
         else if (data.messageType === 'add card') {
             const cardName = data.cardName === undefined ? 'New Card' : data.cardName
-            const newCard = await cardsCollection.insertOne({ id : data.cardId, name : cardName, content : '', column : data.columnId, checkList : [], chatLog : [] })
+            const result = await cardsCollection.insertOne({ id : data.cardId, name : cardName, content : '', column : data.columnId, checkList : [], chatLog : [] })
+            const newCard = await cardsCollection.findOne({ _id : result.insertedId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -104,10 +109,11 @@ wss.on('connection', function connection(socket) {
             console.log(`Cards:\t\tAdded card ${data.cardId}: ${cardName} in ${data.columnId}.`)
         }
         else if (data.messageType === 'update card name') {
-            const newCard = await cardsCollection.updateOne(
+            const result = await cardsCollection.updateOne(
                 { id : data.cardId },
                 { $set : { name : data.cardName } }
             )
+            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -119,10 +125,11 @@ wss.on('connection', function connection(socket) {
             console.log(`Cards:\t\tUpdated card ${data.cardId} to now say ${data.cardName}.`)
         }
         else if (data.messageType === 'update card column') {
-            const newCard = await cardsCollection.updateOne(
+            const result = await cardsCollection.updateOne(
                 { id : data.cardId },
                 { $set : { column : data.columnId } }
             )
+            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -136,10 +143,11 @@ wss.on('connection', function connection(socket) {
         else if (data.messageType === 'update card chat') {
             console.log(`Chat:\t\tMessage received from ${data.userName}'s client for card ${data.cardId}: "${data.message}"`)
             // adding a message to the database
-            const newCard = await cardsCollection.updateOne(
+            const result = await cardsCollection.updateOne(
                 { id: data.cardId },
                 { $push : { chatLog : { name : data.userName, message : data.message } } }
             )
+            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
             // sending the message over to all active clients
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
@@ -152,10 +160,11 @@ wss.on('connection', function connection(socket) {
             console.log(`Chat:\t\tMessage on ${data.cardId} sent out to all connected clients.`)
         }
         else if (data.messageType === 'update card content') {
-            const newCard = await cardsCollection.updateOne(
+            const result = await cardsCollection.updateOne(
                 { id : data.cardId },
                 { $set : { content : data.cardContent } }
             )
+            const newCard = await cardsCollection.findOne({ _id : result.upsertedId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
                     client.send(JSON.stringify({
@@ -168,20 +177,22 @@ wss.on('connection', function connection(socket) {
         }
         // ----------------- Loading -----------------
         else if (data.messageType === 'load columns') {
-            const columns = await columnsCollection.find({})
+            const cursor = await columnsCollection.find()
+            const columns = await cursor.toArray()
             socket.send(JSON.stringify({
                 'messageType': 'load columns',
                 'columns': columns
             }))
-            console.log(`Loading:\t\tSent previous columns.`)
+            console.log(`Loading:\tSent previous columns.`)
         }
         else if (data.messageType === 'load cards') {
-            const cards = await cardsCollection.find({ column : data.columnId })
+            const cursor = await cardsCollection.find({ column : data.columnId })
+            const cards = await cursor.toArray()
             socket.send(JSON.stringify({
                 'messageType': 'load cards',
                 'cards': cards
             }))
-            console.log(`Loading:\t\tSent previous cards for column ${data.columnId}.`)
+            console.log(`Loading:\tSent previous cards for column ${data.columnId}.`)
         }
         else if (data.messageType === 'load card') {
             const card = await cardsCollection.findOne({ id : data.cardId })

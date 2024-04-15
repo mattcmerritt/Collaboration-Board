@@ -49,7 +49,7 @@ export default function Home() {
       }
       // if a column is renamed, update it
       else if (message.messageType === 'update column') {
-        const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column) as HTMLInputElement
+        const input : HTMLInputElement | null = document.getElementById("column-title-" + message.column!.id) as HTMLInputElement
         input.value = message.column!.name
       }
       // if columns are loaded, show all
