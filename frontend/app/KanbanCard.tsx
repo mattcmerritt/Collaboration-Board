@@ -2,8 +2,29 @@
 
 import { ReactElement } from 'react';
 import Draggable from 'react-draggable';
+import { useDrag } from 'react-dnd'
+import { ItemTypes } from './ItemTypes.tsx'
 
 export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
+  // drag stuff
+  const cardId : string = props.id; // TODO: try to not do this and actually use the one in props
+  
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: ItemTypes.CARD,
+    end: (item, monitor) => {
+      const dropResult = monitor.getDropResult()
+      if (item && dropResult) {
+        // alert(`You dropped ${item.name} into ${name}!`) // figure out what to do here to get colname and cardname here
+        console.log(`You dropped a card into a column!`)
+      }
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+      handlerId: monitor.getHandlerId(),
+    }),
+  }))
+  const opacity = isDragging ? 0.4 : 1
+  
   function openChat() {
     props.setConversation(`${props.id}`)
     props.onCardActivate()
@@ -61,18 +82,14 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     // const replacementCard = document.getElementById("kanban-card-" + props.id)
     
     const replacementCard : ReactElement = (
-      <Draggable
-        onStop={moveToHoveredColumn}
-      >
-        <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-          <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-          <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
-          <div className="flex flex-row">
-            <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
-            <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
-          </div>
+      <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
+        <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
+        <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+        <div className="flex flex-row">
+          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
+          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
         </div>
-      </Draggable>
+      </div>
     )
 
     if(destinationCol !== null && replacementCard !== null) {
@@ -83,18 +100,13 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
   }
 
   return (
-    <Draggable
-      onStop={moveToHoveredColumn}
-    >
-      <div className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
-        <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
-        <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
-        <div className="flex flex-row">
-          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
-          <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
-        </div>
+    <div ref={drag} className="m-2 p-1 flex flex-col bg-blue-300 ring-2 ring-blue-500 rounded-lg" id={"kanban-card-" + props.id}>
+      <textarea className="m-2 px-1 bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
+      <button className="m-1 ring-2 ring-gray-950" onClick={openChat}>View Chat</button>
+      <div className="flex flex-row">
+        <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(-1)}>Move left</button>
+        <button className="m-1 flex-1 bg-blue-300 ring-2 ring-gray-950 rounded-lg" onClick={() => moveCard(1)}>Move right</button>
       </div>
-    </Draggable>
-    
+    </div>
   )
 }

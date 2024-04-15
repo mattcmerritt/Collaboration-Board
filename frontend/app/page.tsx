@@ -4,6 +4,8 @@ import Image from "next/image"
 import { useState, useEffect, useRef } from 'react'
 import KanbanColumn from "./KanbanColumn.tsx"
 import ChatPage from "./ChatPage.tsx"
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 
 export default function Home() {
   type Column = {
@@ -134,9 +136,11 @@ export default function Home() {
       <h1 className="bg-blue-500 text-3xl">Collaboration Board</h1>
       <button className="m-2 ring-2 ring-gray-950" onClick={addColumn}>Add Column</button>
 
-      <div id="board" className="flex bg-blue-300">
-        {displayColumns()}
-      </div>
+      <DndProvider backend={HTML5Backend}>
+        <div id="board" className="flex bg-blue-300">
+          {displayColumns()}
+        </div>
+      </DndProvider>
 
       {displayCardModal()}
     </div>
