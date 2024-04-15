@@ -12,6 +12,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
   const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
   const [message, setMessage] = useState("")
   const [name, setName] = useState("")
+  const [cardContent, setCardContent] = useState("")
 
   const wsListenerConfiguredRef = useRef(false)
   const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
@@ -46,6 +47,13 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
           setHistory(message.card!.chatLog)
         }
       }
+      // if a card's content is updated, change the textbox
+      else if (message.messageType === 'update card content') {
+        // need to check if the conversation is the active card before changing anything
+        if (props.conversation == message.card!.id) {
+          setCardContent(message.card!.content)
+        }
+      }
       // if a user is typing, add them to the list of typing users
       else if (message.messageType === 'user typing') {
         // filter out users not typing in the current conversation
@@ -55,6 +63,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
       // if a request to replace the chat history is received, discard and replace history
       else if (message.messageType === 'load card') {
         setHistory(message.card!.chatLog)
+        setCardContent(message.card!.content)
       }
     }
     props.ws.addEventListener("message", messageListener)
@@ -63,7 +72,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
     wsListenerRef.current = messageListener
     wsListenerConfiguredRef.current = true
 
-    // refresh history to reflect new conversation
+    // refresh history to reflect new conversation and updated content
     props.ws.send(JSON.stringify({
       'messageType': 'load card',
       'cardId': props.conversation
@@ -103,6 +112,14 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
       "messageType": "user typing",
       "userName": name === "" ? "Unnamed User" : name,
       "cardId": props.conversation
+    }))
+  }
+
+  function updateCardContent(newContent : string) {
+    props.ws.send(JSON.stringify({
+      "messageType": "update card content",
+      "cardId" : props.conversation,
+      "cardContent": newContent
     }))
   }
 
@@ -153,7 +170,16 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
         {/* content for cards should go here later, like checklists */}
 
-        <h1>Card / Conversation Number: #{props.conversation}</h1>
+        <h2 className="text-red-700">INTERNAL IDENTIFIER: Card #{props.conversation}</h2>
+        <br />
+
+        <h2 className="pb-2.5">Card Contents:</h2>
+        <textarea className="w-full h-1/3 bg-gray-200 p-5 rounded-lg" onChange={(e) => updateCardContent(e.target.value)} value={cardContent}></textarea>
+
+        <br />
+        <br />
+
+        <h2 className="text-red-700 pb-2.5">Chat Controls (TEMPORARY):</h2>
         <NameForm 
           value={name} 
           onChange={handleNameChange} 
@@ -167,9 +193,11 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         
         <br/>
         <br/>
+        <br/>
+        
+        <h2 className="pb-2.5">Chat Log:</h2>
         <div className="p-5 bg-gray-200 rounded-lg">
-          <h1 className="pb-2.5">Chat Log:</h1>
-          {generateLogs()} 
+          {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
         </div>
       </div>
     </div>
