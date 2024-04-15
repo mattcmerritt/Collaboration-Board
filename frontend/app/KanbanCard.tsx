@@ -1,6 +1,5 @@
 'use client'
 
-import { ReactElement } from 'react';
 import Draggable from 'react-draggable';
 
 export default function KanbanCard(props : { id : any, name : string, col : any, columnHovered : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
@@ -17,23 +16,11 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     // check to see if move is valid first
     if((props.col + change) > 0 && (props.col + change) < props.colCount)
     {
-      // fetch name of card
-      const nameInput : HTMLInputElement | null = document.getElementById("card-name-" + props.id) as HTMLInputElement
-    
       // send request to put in the new card
       props.ws.send(JSON.stringify({
-        "ws_msg_type": "move card",
-        "id": props.id,
-        "name": nameInput.value,
-        "column": props.col + change
-      }))
-
-      // send request to remove the old card
-      props.ws.send(JSON.stringify({
-        "ws_msg_type": "remove card",
-        "id": props.id,
-        "name": nameInput.value.trim(),
-        "column": props.col
+        "messageType": "update card column",
+        "cardId": props.id,
+        "columnId": props.col + change
       }))
     }
     else {
@@ -47,16 +34,13 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     
     // send request
     props.ws.send(JSON.stringify({
-      "ws_msg_type": "update card",
-      "id": props.id,
-      "name": nameInput.value,
-      "column": props.col
+      "messageType": "update card name",
+      "cardId": props.id,
+      "cardName": nameInput.value,
     }))
   }
   
   function moveToHoveredColumn() {
-    
-
     const hoveredCol = props.columnHovered // TODO: should be state instead
     const destinationCol = document.getElementById("kanban-column-container-" + hoveredCol)
 
