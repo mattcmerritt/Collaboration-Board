@@ -56,7 +56,7 @@ export default function Home() {
       else if (message.messageType === 'load columns') {
         if (message.columns!.length > 0) {
           setColumns(message.columns!)
-          setColumnCount(message.columns!.length)
+          setColumnCount(message.columns!.length + 1) // +1 to avoid duplicate column on reload
   
           // TODO: runs too early for the columns to listen for it
           //  current work around is a 1ms delay, but better solutions should be achievable
@@ -133,7 +133,7 @@ export default function Home() {
       <DndProvider backend={HTML5Backend}>
         <div id="board" className="flex bg-blue-300">
           {displayColumns()}
-          <button className="m-2 px-1 flex-initial ring-2 bg-blue-400 rounded-lg" onClick={addColumn}>Add Column</button>
+          <button className="flex-initial grow-0 shrink-0 w-64 h-8 m-2 px-1 flex-initial bg-blue-400 rounded-lg" onClick={addColumn}>Add Column</button>
         </div>
       </DndProvider>
 
