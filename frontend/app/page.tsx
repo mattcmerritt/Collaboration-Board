@@ -131,7 +131,7 @@ export default function Home() {
       <h1 className="py-5 flex bg-blue-500 items-center justify-center text-3xl">Collaboration Board</h1>
 
       <DndProvider backend={HTML5Backend}>
-        <div id="board" className="flex bg-blue-300">
+        <div id="board" className="flex overflow-auto bg-blue-300">
           {displayColumns()}
           <button className="flex-initial grow-0 shrink-0 w-64 h-8 m-2 px-1 flex-initial bg-blue-400 rounded-lg" onClick={addColumn}>Add Column</button>
         </div>
