@@ -220,6 +220,8 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
         <h2 className="pb-2.5">Check List:</h2>
         <button className="mx-2 ring-2 ring-gray-950" onClick={addTask}>Add Task</button>
+        <br />
+        <br />
         {generateTaskList()}
 
         <br />

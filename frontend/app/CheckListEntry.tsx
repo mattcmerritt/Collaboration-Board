@@ -19,9 +19,9 @@ export default function CheckListEntry(props : { ws : WebSocket, identifier : st
     }, [props.ws, props.cardId, props.index, content, completed])
     
     return (
-        <div className="p-1" id={"task-entry-" + props.identifier}>
-            <input type="checkbox" id={`task-entry-box-${props.identifier}`} name={`task-entry-box-${props.identifier}`} checked={completed} onChange={(e) => setCompleted(e.target.checked)} />
-            <input className="w-full bg-gray-200 p-5 rounded-lg" type="text" id={`task-entry-label-${props.identifier}`} value={content} onChange={(e) => setContent(e.target.value)} />
+        <div className="p-1 flex flex-row" id={"task-entry-" + props.identifier}>
+            <input className="m-1" type="checkbox" style={{"zoom" : "1.5"}} id={`task-entry-box-${props.identifier}`} name={`task-entry-box-${props.identifier}`} checked={completed} onChange={(e) => setCompleted(e.target.checked)} />
+            <label className="w-full" htmlFor={`task-entry-box-${props.identifier}`}><input className="w-full bg-gray-200 p-2.5 rounded-lg" type="text" id={`task-entry-label-${props.identifier}`} value={content} onChange={(e) => setContent(e.target.value)} /></label>
         </div>
     )
 }
