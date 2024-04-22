@@ -21,6 +21,11 @@ npm run start
 ```
 
 - Complete the following database setup.
+    - Install MongoDB Community Edition from [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)
+        - Confirmed working with v7.0.8 for Windows x86-64
+    - Launch MongoDBCompass, connect to a new database, create a new database called `board`, and add collections called `cards` and `columns` to the board database.
+
+    **OLD**
     - Install PostgreSQL from [https://www.enterprisedb.com/downloads/postgres-postgresql-downloads](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
         - Confirmed working with v16.2 for Windows x86-64.
         - Save the password for the `postgres` superuser, as this will be needed for the backend later.
@@ -38,6 +43,7 @@ npm run start
     ```
     psql --username=postgres
     ```
+    **END OF OLD**
 
 - Create `.env` file using sample as a basis.
     - For the default install of PostgreSQL, it will look like the following:
@@ -48,6 +54,9 @@ npm run start
     DB_DATABASE='postgres'
     DB_PASSWORD='<REMOVED>'
     DB_PORT=5432
+
+    # mongo connection information
+    DB_CONNECTION_STRING='<REMOVED>'
     ```
 
 ### Frontend
