@@ -2,12 +2,32 @@
 
 Developed by Matthew Merritt and Michael Merritt for CSC575.
 
-## Installation / Setup
+This application takes the cards and columns used in a Kanban board for organizing tasks and adds the functionality of a real-time chat application to each card. This effectively streamlines the process of working in scrum and agile development teams, minimizing the number of places that developers need to look when being brought onto new tasks. Additionally, by keeping conversation attached to the task, developers can easily stay focused on their work items.
 
-Assumes that you have Node installed.
-Also assumes ports 8080 and 3000 are free on localhost.
+## Installation
 
-### Backend
+To get started, clone the repository and open a terminal in the root folder (`Collaboration-Board`) of the project.
+
+### Requirements
+
+Assumes that you have [Node](https://nodejs.org/en/download) and [MongoDB Community Edition](https://www.mongodb.com/try/download/community) installed. Also requires that ports 8080 (frontend) and 3000 (backend) are free on localhost.
+
+Confirmed working on Windows x86-64 with Node v20.11.0 and MongoDB Community Edition v7.0.8.
+
+### Tech Stack
+
+Different technologies are used for the frontend and backend components of the application.
+
+#### Backend Tech Stack
+- Primarily done in JavaScript 
+- Manages a WebSocketServer for all of the connected clients to constantly receive updates
+- Connects to a MongoDB instance to store the cards and chat messages for returning users
+
+#### Frontend Tech Stack
+- Primarily done in React using Next.js
+- Leverages WebSockets to monitor changes made to columns, cards, and chat messages
+
+### Backend Setup
 
 - Navigate to the `backend` directory.
 - Run the following:
@@ -15,65 +35,33 @@ Also assumes ports 8080 and 3000 are free on localhost.
 npm install
 ```
 
+- Launch MongoDBCompass and perform the initial database setup:
+    - Connect to a new MongoDB instance, and save the connection string.
+    - Create a new database called `board` on the MongoDB instance.
+    - In the `board` database, add collections called `cards` and `columns`.
+
+- Create `.env` file using sample as a basis:
+    ```
+    # mongo connection information
+    DB_CONNECTION_STRING='<REMOVED>'
+    ```
+
 - Once package install is completed, run the following:
 ```
 npm run start
 ```
 
-- Complete the following database setup.
-    - Install MongoDB Community Edition from [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)
-        - Confirmed working with v7.0.8 for Windows x86-64
-    - Launch MongoDBCompass, connect to a new database, create a new database called `board`, and add collections called `cards` and `columns` to the board database.
-
-    **OLD**
-    - Install PostgreSQL from [https://www.enterprisedb.com/downloads/postgres-postgresql-downloads](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads)
-        - Confirmed working with v16.2 for Windows x86-64.
-        - Save the password for the `postgres` superuser, as this will be needed for the backend later.
-        - Also save the port used for the database.
-
-    - For Windows, ensure that the command `psql` can be run from the command line.
-        - If not, it is possible that you need to update your PATH.
-        - Assuming the default installation, add the following to your PATH:
-        ```
-        C:\Program Files\PostgreSQL\16\bin
-        ```
-        - Once added to path, you may need to restart your machine to get changes to take effect.
-
-    - To view the database, run the following:
-    ```
-    psql --username=postgres
-    ```
-    **END OF OLD**
-
-- Create `.env` file using sample as a basis.
-    - For the default install of PostgreSQL, it will look like the following:
-    ```
-    # postgres database connection information
-    DB_USER='postgres'
-    DB_HOST='::1'
-    DB_DATABASE='postgres'
-    DB_PASSWORD='<REMOVED>'
-    DB_PORT=5432
-
-    # mongo connection information
-    DB_CONNECTION_STRING='<REMOVED>'
-    ```
-
-### Frontend
+### Frontend Setup
 
 - Navigate to the `frontend` directory.
-- Run the following:
+- Run the following commands in order:
 ```
 npm install
 ```
-- Ensure that the backend is already running. 
-    - We are not currently sure why, but building requires the ability to connect to the WebSocketServer.
-- Run the following:
 ```
 npm run build
 ```
-- Once build is completed, run the following:
 ```
 npm run start
 ```
-- Visit `localhost:3000`.
+- Visit [localhost:3000](localhost:3000).
