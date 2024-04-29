@@ -45,6 +45,10 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         // need to check if the conversation is the active one before adding the message
         if (props.conversation == message.card!.id) {
           setHistory(message.card!.chatLog)
+
+          // play a sound
+          var audio = new Audio('Beep.wav');
+          audio.play();
         }
       }
       // if a card's content is updated, change the textbox
