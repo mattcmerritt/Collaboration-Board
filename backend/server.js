@@ -175,7 +175,7 @@ wss.on('connection', function connection(socket) {
             // adding a message to the database
             const result = await cardsCollection.updateOne(
                 { id: data.cardId },
-                { $push : { chatLog : { name : data.userName, message : data.message } } }
+                { $push : { chatLog : { name : data.userName, message : data.message, timestamp : new Date() } } }
             )
             const newCard = await cardsCollection.findOne({ id : data.cardId })
             // sending the message over to all active clients

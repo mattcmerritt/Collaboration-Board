@@ -150,7 +150,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
             identifier = {props.conversation + entry.name + entry.message}
             username = {entry.name}
             message = {entry.message}
-            conversation = {props.conversation}
+            timestamp = {(new Date(entry.timestamp)).toLocaleTimeString()}
           />
         )
       })

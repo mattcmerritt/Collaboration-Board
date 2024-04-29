@@ -5,7 +5,8 @@ type ChecklistItem = {
 
 type ChatMessage = {
     name: string,
-    message: string
+    message: string,
+    timestamp: string
 }
 
 type Card = {
