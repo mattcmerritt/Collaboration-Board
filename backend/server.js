@@ -94,7 +94,7 @@ wss.on('connection', function connection(socket) {
         // ----------------- Cards -----------------
         else if (data.messageType === 'add card') {
             const cardName = data.cardName === undefined ? 'New Card' : data.cardName
-            const result = await cardsCollection.insertOne({ id : data.cardId, name : cardName, content : '', column : data.columnId, checkList : [], chatLog : [] })
+            const result = await cardsCollection.insertOne({ id : data.cardId, name : cardName, content : '', column : data.columnId, order : data.cardOrder, checkList : [], chatLog : [] })
             const newCard = await cardsCollection.findOne({ _id : result.insertedId })
             wss.clients.forEach(function each(client) {
                 if (client.readyState === ws.WebSocket.OPEN) {
@@ -123,9 +123,16 @@ wss.on('connection', function connection(socket) {
             console.log(`Cards:\t\tUpdated card ${data.cardId} to now say ${data.cardName}.`)
         }
         else if (data.messageType === 'update card column') {
+            // retrieve the original card information (used for fixing the column)
+            const oldCard = await cardsCollection.findOne({ id : data.cardId })
+            // determine what the cards are in the new column (used for order)
+            // TODO: have the desired order passed in as a parameter
+            const cursor = await cardsCollection.find({ column : data.columnId })
+            const cards = await cursor.toArray()
+            // updating the card to appear at the new order and column
             const result = await cardsCollection.updateOne(
                 { id : data.cardId },
-                { $set : { column : data.columnId } }
+                { $set : { column : data.columnId, order : cards.length } }
             )
             const newCard = await cardsCollection.findOne({ id : data.cardId })
             wss.clients.forEach(function each(client) {
@@ -136,7 +143,32 @@ wss.on('connection', function connection(socket) {
                     }))
                 }
             })
-            console.log(`Cards:\t\tMoved card ${data.cardId} into column ${data.columnId}.`)
+
+            // also update the order of all the cards in the previous column
+            const oldColumnCursor = await cardsCollection.find({ column : oldCard.column })
+            const oldColumnCards = await oldColumnCursor.toArray()
+            oldColumnCards.sort((a, b) => a.order - b.order)
+            for (let i = 0; i < oldColumnCards.length; i++) {
+                if (oldColumnCards[i].order > oldCard.order) {
+                    await cardsCollection.updateOne(
+                        { id : oldColumnCards[i].id },
+                        { $set : { order : oldColumnCards[i].order - 1 } }
+                    )
+                }
+            }
+
+            // fetching update versions and reloading column
+            const oldColumnCursorUpdated = await cardsCollection.find({ column : data.columnId })
+            const oldColumnCardsUpdated = await oldColumnCursorUpdated.toArray()
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === ws.WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        'messageType': 'load cards',
+                        'cards': oldColumnCardsUpdated
+                    }))
+                }
+            })
+            console.log(`Cards:\t\tMoved card ${data.cardId} into column ${data.columnId} (new order of ${cards.length}).`)
         }
         else if (data.messageType === 'update card chat') {
             console.log(`Chat:\t\tMessage received from ${data.userName}'s client for card ${data.cardId}: "${data.message}"`)
@@ -178,6 +210,7 @@ wss.on('connection', function connection(socket) {
             const cursor = await cardsCollection.find({ column : data.columnId })
             const cards = await cursor.toArray()
             // calculate the direction elements should move in
+            cards.sort((a, b) => a.order - b.order)
             const movingCard = cards.find((cardObject) => cardObject.id === data.cardId)
             const delta = movingCard.order - data.cardOrder
             const movingForward = delta < 0

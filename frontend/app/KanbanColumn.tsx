@@ -122,7 +122,8 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
       "messageType": "add card",
       "cardId": props.cardCount,
       "cardName": "New Card",
-      "columnId": props.colNum
+      "columnId": props.colNum,
+      "cardOrder": cardsInColumn,
     }))
   }
 
@@ -130,6 +131,8 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
     const cardComponents : JSX.Element[] = []
 
     if (cards) {
+      // force a sort on cards just in case
+      cards?.sort((a : Card, b : Card) => a.order - b.order)
       cards?.forEach(card => {
         // TODO: this if statement is very sloppy - ideally this should not be necessary
         // and cards that are no longer in this column should be cleared from the state
