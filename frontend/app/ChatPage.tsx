@@ -153,13 +153,17 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
   function showTypingUsers() {
     if (usersTyping) {
       if (usersTyping.length == 1) {
-        return <p id="typing-indicator">{usersTyping[0] + " is typing..."}</p>
+        return <p id="typing-indicator" className="px-2">{usersTyping[0] + " is typing..."}</p>
       }
       else if (usersTyping.length == 2) {
-        return <p id="typing-indicator">{usersTyping[0] + " and " + usersTyping[1] + " are typing..."}</p>
+        return <p id="typing-indicator" className="px-2">{usersTyping[0] + " and " + usersTyping[1] + " are typing..."}</p>
       }
       else if (usersTyping.length > 1) {
-        return <p id="typing-indicator">{usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."}</p>
+        return <p id="typing-indicator" className="px-2">{usersTyping.slice(0, usersTyping.length-1).join(", ") + ", and " + usersTyping[usersTyping.length-1] + " are typing..."}</p>
+      }
+      else
+      {
+        return <br id="typing-indicator" className="px-2"></br>
       }
     }
     return
@@ -209,7 +213,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <br />
 
         <h2 className="pb-2.5">Check List:</h2>
-        <button className="mx-2 ring-2 ring-gray-950" onClick={addTask}>Add Task</button>
+        <button className="p-5 py-1 bg-gray-300 rounded-lg" onClick={addTask}>Add Task</button>
         <br />
         <br />
         {generateTaskList()}
@@ -217,22 +221,24 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <br />
         <br />
 
-        <h2 className="text-red-700 pb-2.5">Chat Controls (TEMPORARY):</h2>
+        <h2 className="pb-2.5">Chat:</h2>
+
+        <div className="p-5 bg-gray-200 rounded-lg">
+          {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
+        </div>
+        {showTypingUsers()}
+
+        <br/>
+        <br/>
+
         <MessageForm 
           value={message} 
           onChange={handleMessageChange} 
         />
-        <button className="mx-2 ring-2 ring-gray-950" onClick={sendMessage}>Send Message</button>
-        {showTypingUsers()}
+        <button className="p-5 py-1 bg-gray-300 rounded-lg" onClick={sendMessage}>Send Message</button>
         
-        <br/>
-        <br/>
-        <br/>
-
-        <h2 className="pb-2.5">Chat Log:</h2>
-        <div className="p-5 bg-gray-200 rounded-lg">
-          {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
-        </div>
+        
+        
       </div>
     </div>
   )

@@ -3,8 +3,8 @@
 export default function MessageForm(props : { value : any, onChange : any }) {
   return (
     <div className="py-1" id="message">
-      <label htmlFor="message-input">Message Content: </label>
-      <input className="ring-1 ring-gray-950" id="message-input" type="text" onChange={props.onChange} />
+      <label htmlFor="message-input">New Message: </label>
+      <textarea className="w-full h-1/3 bg-gray-200 p-5 rounded-lg" id="message-input" onChange={props.onChange} />
     </div>
   )
 }
