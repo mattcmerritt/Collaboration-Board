@@ -223,7 +223,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
         <h2 className="pb-2.5">Chat:</h2>
 
-        <div className="p-5 bg-gray-200 rounded-lg">
+        <div className="p-5 w-full h-1/2 overflow-auto bg-gray-200 rounded-lg">
           {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
         </div>
         {showTypingUsers()}
