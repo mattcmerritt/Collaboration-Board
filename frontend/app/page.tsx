@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import KanbanColumn from "./KanbanColumn.tsx"
+import LoginWindow from './LoginWindow.tsx'
 import ChatPage from "./ChatPage.tsx"
 import { Card, Column, TypingUser } from "./Types.ts"
 import { DndProvider } from 'react-dnd'
@@ -15,6 +16,8 @@ export default function Home() {
   const [conversation, setConversation] = useState(0)
   const [cardActive, setCardActive] = useState(false)
   const [activeCardName, setActiveCardName] = useState('default')
+  const [userName, setUserName] = useState('Unnamed User')
+  const [userNameSet, setUserNameSet] = useState(false)
 
   // set up the websocket as some sort of React Hook and Effect so other React Components can use it
   const ws = useRef(null as unknown as WebSocket)
@@ -79,7 +82,8 @@ export default function Home() {
   }, [])
 
   // chat modal JSX component
-  const chatPage = <ChatPage ws={ws.current} conversation={conversation} activeCardName={activeCardName} onCardHide={() => setCardActive(false)}/>
+  const chatPage = <ChatPage ws={ws.current} conversation={conversation} activeCardName={activeCardName} onCardHide={() => setCardActive(false)} userName={userName} />
+  const loginWindow = <LoginWindow setUserName={(s : string) => setUserName(s)} setUserNameSet={(b : boolean) => setUserNameSet(b)} />
 
   function addColumn() {
     ws.current.send(JSON.stringify({
@@ -126,6 +130,15 @@ export default function Home() {
     }
   }
 
+  function displayLoginWindow() {
+    if (userNameSet) {
+      return
+    }
+    else {
+      return loginWindow
+    }
+  }
+
   return (
     <div id="content">
       <h1 className="py-5 flex bg-blue-500 items-center justify-center text-3xl">Collaboration Board</h1>
@@ -136,7 +149,7 @@ export default function Home() {
           <button className="flex-initial grow-0 shrink-0 w-64 h-8 m-2 px-1 flex-initial bg-blue-400 rounded-lg" onClick={addColumn}>Add Column</button>
         </div>
       </DndProvider>
-
+      {displayLoginWindow()}
       {displayCardModal()}
     </div>
   )

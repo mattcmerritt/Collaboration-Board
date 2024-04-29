@@ -1,18 +1,16 @@
 'use client'
 
-import NameForm from './ChatNameForm.tsx'
 import MessageForm from './ChatMessageForm.tsx'
 import ChatLogEntry from "./ChatLogEntry.tsx"
 import CheckListEntry from './CheckListEntry.tsx'
 import { useState, useEffect, useRef } from 'react'
 import { ChatMessage, Card, Column, TypingUser, ChecklistItem } from "./Types.ts"
 
-export default function ChatPage(props: { ws: WebSocket, conversation : any, activeCardName : any, onCardHide : any }) {
+export default function ChatPage(props: { ws: WebSocket, conversation : any, activeCardName : any, onCardHide : any, userName : any }) {
   // react state hooks
   const [history, setHistory] = useState([] as ChatMessage[] | undefined)
   const [usersTyping, setUsersTyping] = useState([] as string[] | undefined)
   const [message, setMessage] = useState("")
-  const [name, setName] = useState("")
   const [cardContent, setCardContent] = useState("")
   const [cardTasks, setCardTasks] = useState([] as ChecklistItem[] | undefined)
 
@@ -89,14 +87,6 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
   }, [props.ws, props.conversation])
 
-  function handleNameChange() {
-    const nameInput : HTMLInputElement | null = document.getElementById("name-input") as HTMLInputElement
-
-    if (nameInput !== null) {
-      setName(nameInput.value.trim())
-    }
-  }
-
   function handleMessageChange() {
     const messageInput : HTMLInputElement | null = document.getElementById("message-input") as HTMLInputElement
 
@@ -110,7 +100,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
   function sendMessage() {
     props.ws.send(JSON.stringify({
       "messageType": "update card chat",
-      "userName": name === "" ? "Unnamed User" : name,
+      "userName": props.userName,
       "message": message === "" ? "No message content." : message,
       "cardId": props.conversation
     }))
@@ -119,7 +109,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
   function showTyping() {
     props.ws.send(JSON.stringify({
       "messageType": "user typing",
-      "userName": name === "" ? "Unnamed User" : name,
+      "userName": props.userName,
       "cardId": props.conversation
     }))
   }
@@ -228,10 +218,6 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <br />
 
         <h2 className="text-red-700 pb-2.5">Chat Controls (TEMPORARY):</h2>
-        <NameForm 
-          value={name} 
-          onChange={handleNameChange} 
-        />
         <MessageForm 
           value={message} 
           onChange={handleMessageChange} 
