@@ -12,6 +12,7 @@ type Card = {
     id: number,
     name: string,
     column: number,
+    order: number,
     content: string,
     checkList: ChecklistItem[],
     chatLog: ChatMessage[]

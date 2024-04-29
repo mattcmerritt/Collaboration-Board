@@ -65,3 +65,57 @@ npm run build
 npm run start
 ```
 - Visit [localhost:3000](localhost:3000).
+
+## Development Notes
+
+The application depends heavily on communication done over Websockets to keep all clients up to date. The backend manages the Websocket Server, and the frontend creates a Websocket to connect to the server. 
+
+The following requests can be made between applications to achieve the results indicated in the names:
+- `add column`
+- `update column`
+- `add card`
+- `update card name`
+- `update card column`
+- `update card chat`
+- `update card content`
+- `update card order`
+- `load columns`
+- `load cards`
+- `user typing`
+
+With these requests, the parameters should use the following fields depending on what is receiving the message:
+
+```ts
+// WEB SOCKET SERVER MESSAGE PARAMS (MESSAGES TO THE BACKEND)
+type WSSPARAMS = {
+    messageType: string
+
+    cardId: number
+    cardName: string
+    cardContent: string
+    cardOrder: number
+
+    columnName: string
+    columnId: number
+
+    userName: string
+    message: string
+}
+
+// WEB SOCKET MESSAGE PARAMS (MESSAGES TO THE FRONTEND)
+type WSPARAMS = {
+    messageType : string
+
+    card : Card
+    column : Column
+
+    columns : Column[]
+    cards : Card[]
+
+    typingUsers? : {
+        userName : string
+        cardId: number
+    }
+    isTyping : boolean
+}
+```

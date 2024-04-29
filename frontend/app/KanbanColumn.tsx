@@ -10,6 +10,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   // state variables
   const [cards, setCards] = useState([] as Card[])
   const [name, setName] = useState(props.name as string)
+  const [cardsInColumn, setCardsInColumn] = useState(0)
 
   const wsListenerConfiguredRef = useRef(false)
   const wsListenerRef = useRef(null as unknown as (this: WebSocket, ev: MessageEvent<any>) => any)
@@ -17,6 +18,12 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
   // extracting callback function from props
   // prevents warning on dependencies in websocket effect below
   const incrementCardCount = props.incrementCardCount
+
+  // whenever the list of cards changes, update the number of cards and sort by order of cards
+  useEffect(() => {
+    cards.sort((a : Card, b : Card) => a.order - b.order)
+    setCardsInColumn(cards.length)
+  }, [cards])
 
   // drop stuff
   const [{ isOver, isOverCurrent }, drop] = useDrop(
@@ -84,6 +91,13 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
         // otherwise, add the card to the column
         else {
           setCards(c => c.concat(message.card!))
+        }
+      }
+      else if (message.messageType === 'update card order') 
+      {
+        // if the column matches, replace the cards in the column to reorder them
+        if (message.cards![0].column !== props.colNum) {
+          setCards(message.cards!)
         }
       }
       else if (message.messageType === 'load cards')
