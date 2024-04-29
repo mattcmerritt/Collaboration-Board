@@ -215,20 +215,23 @@ wss.on('connection', function connection(socket) {
             const delta = movingCard.order - data.cardOrder
             const movingForward = delta < 0
             const movingBackward = delta > 0
-            const notMoving = delta === 0          
+            const notMoving = delta === 0        
+            if (notMoving || data.cardOrder == cards.length || data.cardOrder < 0) {
+                console.log(`Cards:\t\tRequested bad card order update, but no changes made.`)
+            }  
             // increment the order of all cards based on the movement direction
-            if (movingBackward) {
+            else if (movingBackward) {
                 // update surrounding cards
-                for (let i = data.cardOrder; i < cardObject.order; i++) {
+                for (let i = data.cardOrder; i < movingCard.order; i++) {
                     await cardsCollection.updateOne(
                         { id : cards[i].cardId },
-                        { $set : { content : cards[i].order + 1 } }
+                        { $set : { order : cards[i].order + 1 } }
                     )
                 }
                 // move the card to the target location
                 await cardsCollection.updateOne(
                     { id : movingCard.cardId },
-                    { $set : { content : data.cardOrder } }
+                    { $set : { order : data.cardOrder } }
                 )
                 // refetching the cards with updated orders
                 const newCursor = await cardsCollection.find({ column : data.columnId })
@@ -246,16 +249,16 @@ wss.on('connection', function connection(socket) {
             }
             else if (movingForward) {
                 // update surrounding cards
-                for (let i = cardObject.order + 1; i <= data.cardOrder; i++) {
+                for (let i = movingCard.order + 1; i <= data.cardOrder; i++) {
                     await cardsCollection.updateOne(
                         { id : cards[i].cardId },
-                        { $set : { content : cards[i].order - 1 } }
+                        { $set : { order : cards[i].order - 1 } }
                     )
                 }
                 // move the card to the target location
                 await cardsCollection.updateOne(
                     { id : movingCard.cardId },
-                    { $set : { content : data.cardOrder } }
+                    { $set : { order : data.cardOrder } }
                 )
                 // refetching the cards with updated orders
                 const newCursor = await cardsCollection.find({ column : data.columnId })
@@ -270,9 +273,6 @@ wss.on('connection', function connection(socket) {
                     }
                 })
                 console.log(`Cards:\t\tCard at ${data.cardId} moved to ${data.cardOrder}.`)
-            }
-            else if (notMoving) {
-                console.log(`Cards:\t\tRequested card order update, but no changes made.`)
             }
         }
         else if (data.messageType === 'add card task') {

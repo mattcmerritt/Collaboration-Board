@@ -144,6 +144,7 @@ export default function KanbanColumn(props : { colNum : any, colCount : any, car
               id={card.id}
               name={card.name}
               col={props.colNum}
+              order={card.order}
               ws={props.ws}
               colCount={props.colCount}
               setConversation={props.setConversation}

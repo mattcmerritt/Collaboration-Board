@@ -3,7 +3,7 @@
 import { useDrag } from 'react-dnd'
 import { ItemTypes } from './ItemTypes.tsx'
 
-export default function KanbanCard(props : { id : any, name : string, col : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
+export default function KanbanCard(props : { id : any, name : string, col : any, order : any, ws : WebSocket, colCount : any, setConversation : any, onCardActivate : any, setActiveCardName : any }) {
   // drag stuff
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.CARD,
@@ -68,11 +68,23 @@ export default function KanbanCard(props : { id : any, name : string, col : any,
     }
   }
 
+  function reorder(delta : number) {
+    // send request to move card
+    props.ws.send(JSON.stringify({
+      "messageType": "update card order",
+      "cardId": props.id,
+      "columnId": props.col,
+      "cardOrder": props.order + delta
+    }))
+  }
+
   return (
     <div ref={drag} className="m-2 p-1 flex flex-col bg-blue-300 rounded-lg" id={"kanban-card-" + props.id}>
       <textarea className="m-2 px-1 resize-none bg-blue-200 rounded-lg" id={"card-name-" + props.id} onChange={updateCardText} value={props.name}/>
       <button className="m-1 bg-blue-100 rounded-lg" onClick={openChat}>View Chat</button>
       <div className="flex flex-row">
+        <button className="flex-auto m-1 bg-blue-100 rounded-lg" onClick={() => reorder(-1)}>Move Up</button>
+        <button className="flex-auto m-1 bg-blue-100 rounded-lg" onClick={() => reorder(1)}>Move Down</button>
       </div>
     </div>
   )
