@@ -113,6 +113,20 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
       "message": message === "" ? "No message content." : message,
       "cardId": props.conversation
     }))
+
+    // clear text window
+    const messageInput : HTMLInputElement | null = document.getElementById("message-input") as HTMLInputElement
+
+    if (messageInput !== null) {
+      messageInput.value = ''
+      setMessage('')
+    }
+  }
+
+  function checkKeyPresses(e : React.KeyboardEvent) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      sendMessage()
+    }
   }
 
   function showTyping() {
@@ -146,7 +160,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
       entries.forEach(entry => {
         entryComponents.push(
           <ChatLogEntry
-            key = {props.conversation + entry.name + entry.message}
+            key = {entry.timestamp + entry.name + entry.message}
             identifier = {props.conversation + entry.name + entry.message}
             username = {entry.name}
             message = {entry.message}
@@ -243,6 +257,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
         <MessageForm 
           value={message} 
           onChange={handleMessageChange} 
+          onKeyDown={checkKeyPresses}
         />
         <button className="p-5 py-1 bg-gray-300 rounded-lg" onClick={sendMessage}>Send Message</button>
         
