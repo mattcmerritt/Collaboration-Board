@@ -87,6 +87,11 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
   }, [props.ws, props.conversation])
 
+  useEffect(() => {
+    const chatWindow = document.getElementById('chat-message-scroll-window')
+    chatWindow!.scrollTop = chatWindow!.scrollHeight;
+  }, [history])
+
   function handleMessageChange() {
     const messageInput : HTMLInputElement | null = document.getElementById("message-input") as HTMLInputElement
 
@@ -223,7 +228,7 @@ export default function ChatPage(props: { ws: WebSocket, conversation : any, act
 
         <h2 className="pb-2.5">Chat:</h2>
 
-        <div className="p-5 w-full h-1/2 overflow-auto bg-gray-200 rounded-lg">
+        <div className="p-5 w-full h-1/2 overflow-auto bg-gray-200 rounded-lg" id="chat-message-scroll-window">
           {generateLogs().length > 0 ? generateLogs() : "Nothing to display yet."} 
         </div>
         {showTypingUsers()}
